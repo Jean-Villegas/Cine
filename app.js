@@ -6,6 +6,10 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var peliculasRouter = require('./routes/peliculas');
+var salasRouter = require('./routes/salas');
+var funcionesRouter = require('./routes/funciones');
+var boletosRouter = require('./routes/boletos');
 
 var app = express();
 
@@ -19,8 +23,15 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Rutas principales
 app.use('/', indexRouter);
-app.use('/users', usersRouter);
+
+// Rutas API
+app.use('/api/users', usersRouter);
+app.use('/api/peliculas', peliculasRouter);
+app.use('/api/salas', salasRouter);
+app.use('/api/funciones', funcionesRouter);
+app.use('/api/boletos', boletosRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
