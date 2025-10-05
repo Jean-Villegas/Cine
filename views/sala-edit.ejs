@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Sala - CineApp</title>
+    <title>Editar Sala - CineApp</title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <style>
         body {
@@ -148,8 +148,8 @@
     
     <div class="container">
         <div class="header">
-            <h1>➕ Agregar Nueva Sala</h1>
-            <p>Completa el formulario para agregar una nueva sala al cine</p>
+            <h1>✏️ Editar Sala</h1>
+            <p>Modifica la información de la sala</p>
         </div>
 
         <div class="form-container">
@@ -203,8 +203,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-success">✅ Agregar Sala</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Limpiar Formulario</button>
+                    <button type="submit" class="btn btn-success">✅ Actualizar Sala</button>
                     <a href="/salas" class="btn btn-secondary">❌ Cancelar</a>
                 </div>
             </form>
@@ -215,6 +214,43 @@
 
     <script>
         const API_BASE = '/api/salas';
+        let salaId = null;
+
+        // Cargar datos de la sala al cargar la página
+        window.onload = async function() {
+            // Obtener ID de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            salaId = urlParams.get('id');
+            
+            if (salaId) {
+                await loadSala(salaId);
+            } else {
+                showError('ID de sala no proporcionado');
+            }
+        };
+
+        async function loadSala(id) {
+            try {
+                const response = await fetch(`${API_BASE}/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const sala = data.data;
+                    
+                    // Llenar el formulario con los datos existentes
+                    document.getElementById('numero').value = sala.numero || '';
+                    document.getElementById('capacidad').value = sala.capacidad || '';
+                    document.getElementById('tipo').value = sala.tipo || 'Estándar';
+                    document.getElementById('ubicacion').value = sala.ubicacion || 'Planta Baja';
+                    document.getElementById('estado').value = sala.estado || 'activa';
+                    document.getElementById('equipamiento').value = Array.isArray(sala.equipamiento) ? sala.equipamiento.join(', ') : (sala.equipamiento || '');
+                } else {
+                    showError('Error al cargar la sala: ' + data.message);
+                }
+            } catch (error) {
+                showError('Error de conexión: ' + error.message);
+            }
+        }
 
         document.getElementById('salaForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -235,8 +271,8 @@
             try {
                 showLoading();
                 
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
+                const response = await fetch(`${API_BASE}/${salaId}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -246,27 +282,21 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showSuccess('¡Sala agregada exitosamente!');
-                    resetForm();
+                    showSuccess('¡Sala actualizada exitosamente!');
                     setTimeout(() => {
                         window.location.href = '/salas';
                     }, 2000);
                 } else {
-                    showError('Error al agregar la sala: ' + data.message);
+                    showError('Error al actualizar la sala: ' + data.message);
                 }
             } catch (error) {
                 showError('Error de conexión: ' + error.message);
             }
         });
 
-        function resetForm() {
-            document.getElementById('salaForm').reset();
-            document.getElementById('estado').value = 'activa';
-        }
-
         function showLoading() {
             const container = document.getElementById('messageContainer');
-            container.innerHTML = '<div class="loading">🔄 Agregando sala...</div>';
+            container.innerHTML = '<div class="loading">🔄 Actualizando sala...</div>';
         }
 
         function showSuccess(message) {
@@ -281,5 +311,3 @@
     </script>
 </body>
 </html>
-
-

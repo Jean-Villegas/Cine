@@ -228,6 +228,7 @@
                             </div>
                             <div class="boleto-actions">
                                 <a href="/boletos/${boleto.id}" class="btn">👁️ Ver Detalle</a>
+                                <button class="btn" onclick="editBoleto(${boleto.id})">✏️ Editar</button>
                                 <button class="btn" onclick="usarBoleto(${boleto.id})">✅ Usar Boleto</button>
                                 <button class="btn btn-danger" onclick="cancelarBoleto(${boleto.id})">❌ Cancelar</button>
                             </div>
@@ -240,6 +241,11 @@
         function showError(message) {
             const container = document.getElementById('boletosContainer');
             container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        function editBoleto(id) {
+            // Redirigir a formulario de edición
+            window.location.href = `/boletos/${id}/editar?id=${id}`;
         }
 
         async function cancelarBoleto(id) {
@@ -289,4 +295,5 @@
     </script>
 </body>
 </html>
+
 

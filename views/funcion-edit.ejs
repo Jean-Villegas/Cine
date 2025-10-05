@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Agregar Función - CineApp</title>
+    <title>Editar Función - CineApp</title>
     <link rel='stylesheet' href='/stylesheets/style.css' />
     <style>
         body {
@@ -150,14 +150,13 @@
     
     <div class="container">
         <div class="header">
-            <h1>➕ Agregar Nueva Función</h1>
-            <p>Programa una nueva función en el cine</p>
+            <h1>✏️ Editar Función</h1>
+            <p>Modifica la información de la función</p>
         </div>
 
         <div class="form-container">
             <div class="info-box">
-                <strong>ℹ️ Información:</strong> Primero debes tener películas y salas disponibles. 
-                La hora de fin se calculará automáticamente basada en la duración de la película.
+                <strong>ℹ️ Información:</strong> La hora de fin se calculará automáticamente basada en la duración de la película.
             </div>
 
             <form id="funcionForm">
@@ -203,6 +202,17 @@
                     </div>
                 </div>
 
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="asientosDisponibles">Asientos Disponibles</label>
+                        <input type="number" id="asientosDisponibles" name="asientosDisponibles" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label for="asientosOcupados">Asientos Ocupados</label>
+                        <input type="number" id="asientosOcupados" name="asientosOcupados" min="0">
+                    </div>
+                </div>
+
                 <div class="form-group">
                     <label for="estado">Estado</label>
                     <select id="estado" name="estado">
@@ -213,8 +223,7 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-success">✅ Agregar Función</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetForm()">🔄 Limpiar Formulario</button>
+                    <button type="submit" class="btn btn-success">✅ Actualizar Función</button>
                     <a href="/funciones" class="btn btn-secondary">❌ Cancelar</a>
                 </div>
             </form>
@@ -227,15 +236,21 @@
         const API_BASE = '/api/funciones';
         const PELICULAS_API = '/api/peliculas';
         const SALAS_API = '/api/salas';
+        let funcionId = null;
 
-        // Cargar películas y salas al cargar la página
+        // Cargar datos de la función al cargar la página
         window.onload = async function() {
-            await loadPeliculas();
-            await loadSalas();
+            // Obtener ID de la URL
+            const urlParams = new URLSearchParams(window.location.search);
+            funcionId = urlParams.get('id');
             
-            // Establecer fecha por defecto (hoy)
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha').value = today;
+            if (funcionId) {
+                await loadPeliculas();
+                await loadSalas();
+                await loadFuncion(funcionId);
+            } else {
+                showError('ID de función no proporcionado');
+            }
         };
 
         async function loadPeliculas() {
@@ -279,14 +294,38 @@
             }
         }
 
-        // Auto-calcular hora de fin y precio cuando cambie la película
-        document.getElementById('peliculaId').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption.dataset.precio) {
-                document.getElementById('precio').value = selectedOption.dataset.precio;
+        async function loadFuncion(id) {
+            try {
+                const response = await fetch(`${API_BASE}/${id}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const funcion = data.data;
+                    
+                    // Llenar el formulario con los datos existentes
+                    document.getElementById('peliculaId').value = funcion.peliculaId || '';
+                    document.getElementById('salaId').value = funcion.salaId || '';
+                    document.getElementById('fecha').value = funcion.fecha || '';
+                    document.getElementById('horaInicio').value = funcion.horaInicio || '';
+                    document.getElementById('precio').value = funcion.precio || '';
+                    document.getElementById('tipo').value = funcion.tipo || 'Normal';
+                    document.getElementById('asientosDisponibles').value = funcion.asientosDisponibles || '';
+                    document.getElementById('asientosOcupados').value = funcion.asientosOcupados || '';
+                    document.getElementById('estado').value = funcion.estado || 'activa';
+                    
+                    // Actualizar hora de fin si hay datos
+                    if (funcion.horaInicio && funcion.peliculaId) {
+                        updateHoraFin();
+                    }
+                } else {
+                    showError('Error al cargar la función: ' + data.message);
+                }
+            } catch (error) {
+                showError('Error de conexión: ' + error.message);
             }
-        });
+        }
 
+        // Auto-calcular hora de fin cuando cambien los campos
         document.getElementById('peliculaId').addEventListener('change', updateHoraFin);
         document.getElementById('horaInicio').addEventListener('change', updateHoraFin);
 
@@ -320,8 +359,6 @@
             const formData = new FormData(e.target);
             const peliculaSelect = document.getElementById('peliculaId');
             const duracion = parseInt(peliculaSelect.options[peliculaSelect.selectedIndex].dataset.duracion);
-            const salaSelect = document.getElementById('salaId');
-            const capacidad = parseInt(salaSelect.options[salaSelect.selectedIndex].dataset.capacidad);
             
             // Calcular hora de fin
             const [horas, minutos] = formData.get('horaInicio').split(':').map(Number);
@@ -337,8 +374,8 @@
                 horaInicio: formData.get('horaInicio'),
                 horaFin: horaFin,
                 precio: parseFloat(formData.get('precio')) || 0,
-                asientosDisponibles: capacidad,
-                asientosOcupados: 0,
+                asientosDisponibles: parseInt(formData.get('asientosDisponibles')) || 0,
+                asientosOcupados: parseInt(formData.get('asientosOcupados')) || 0,
                 estado: formData.get('estado'),
                 tipo: formData.get('tipo')
             };
@@ -346,8 +383,8 @@
             try {
                 showLoading();
                 
-                const response = await fetch(API_BASE, {
-                    method: 'POST',
+                const response = await fetch(`${API_BASE}/${funcionId}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
                     },
@@ -357,32 +394,21 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    showSuccess('¡Función agregada exitosamente!');
-                    resetForm();
+                    showSuccess('¡Función actualizada exitosamente!');
                     setTimeout(() => {
                         window.location.href = '/funciones';
                     }, 2000);
                 } else {
-                    showError('Error al agregar la función: ' + data.message);
+                    showError('Error al actualizar la función: ' + data.message);
                 }
             } catch (error) {
                 showError('Error de conexión: ' + error.message);
             }
         });
 
-        function resetForm() {
-            document.getElementById('funcionForm').reset();
-            document.getElementById('estado').value = 'activa';
-            document.getElementById('tipo').value = 'Normal';
-            
-            // Restablecer fecha
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('fecha').value = today;
-        }
-
         function showLoading() {
             const container = document.getElementById('messageContainer');
-            container.innerHTML = '<div class="loading">🔄 Agregando función...</div>';
+            container.innerHTML = '<div class="loading">🔄 Actualizando función...</div>';
         }
 
         function showSuccess(message) {
@@ -397,5 +423,3 @@
     </script>
 </body>
 </html>
-
-
