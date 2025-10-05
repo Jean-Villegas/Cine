@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Form - CineApp</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .message {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🧪 Test Form - Agregar Sala</h1>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="numero">Número de Sala *</label>
+            <input type="text" id="numero" name="numero" required value="Sala Test">
+        </div>
+        
+        <div class="form-group">
+            <label for="capacidad">Capacidad *</label>
+            <input type="number" id="capacidad" name="capacidad" required value="100">
+        </div>
+        
+        <div class="form-group">
+            <label for="tipo">Tipo</label>
+            <select id="tipo" name="tipo">
+                <option value="Estándar" selected>Estándar</option>
+                <option value="Premium">Premium</option>
+                <option value="VIP">VIP</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="ubicacion">Ubicación</label>
+            <select id="ubicacion" name="ubicacion">
+                <option value="Planta Baja" selected>Planta Baja</option>
+                <option value="Primer Piso">Primer Piso</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="estado">Estado</label>
+            <select id="estado" name="estado">
+                <option value="activa" selected>Activa</option>
+                <option value="inactiva">Inactiva</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="equipamiento">Equipamiento</label>
+            <textarea id="equipamiento" name="equipamiento">Sonido Digital, Pantalla HD</textarea>
+        </div>
+        
+        <button type="submit">✅ Agregar Sala</button>
+        <button type="button" onclick="testAPI()">🧪 Test API Directo</button>
+    </form>
+    
+    <div id="message"></div>
+    
+    <script>
+        const API_BASE = '/api/salas';
+        
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const equipamientoText = formData.get('equipamiento');
+            const equipamientoArray = equipamientoText ? 
+                equipamientoText.split(',').map(item => item.trim()).filter(item => item) : [];
+            
+            const salaData = {
+                numero: formData.get('numero'),
+                capacidad: parseInt(formData.get('capacidad')),
+                tipo: formData.get('tipo'),
+                ubicacion: formData.get('ubicacion'),
+                estado: formData.get('estado'),
+                equipamiento: equipamientoArray
+            };
+            
+            console.log('Enviando datos:', salaData);
+            
+            try {
+                showMessage('Enviando datos...', 'info');
+                
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(salaData)
+                });
+                
+                console.log('Respuesta status:', response.status);
+                
+                const data = await response.json();
+                console.log('Respuesta data:', data);
+                
+                if (data.success) {
+                    showMessage(`✅ ¡Sala agregada exitosamente! ID: ${data.data.id}`, 'success');
+                } else {
+                    showMessage(`❌ Error: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        });
+        
+        async function testAPI() {
+            try {
+                showMessage('Probando API...', 'info');
+                
+                const testData = {
+                    numero: "Test Sala " + Date.now(),
+                    capacidad: 50,
+                    tipo: "Estándar",
+                    ubicacion: "Planta Baja",
+                    estado: "activa",
+                    equipamiento: ["Test Equipamiento"]
+                };
+                
+                console.log('Test data:', testData);
+                
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const data = await response.json();
+                console.log('Test response:', data);
+                
+                if (data.success) {
+                    showMessage(`✅ Test exitoso! Sala creada con ID: ${data.data.id}`, 'success');
+                } else {
+                    showMessage(`❌ Test falló: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                console.error('Test error:', error);
+                showMessage(`❌ Test error: ${error.message}`, 'error');
+            }
+        }
+        
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.className = `message ${type}`;
+            messageDiv.textContent = message;
+        }
+    </script>
+</body>
+</html>
+

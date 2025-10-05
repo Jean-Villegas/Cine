@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Función - CineApp</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            color: #2c3e50;
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .detail-container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+        .detail-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        .detail-section h3 {
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            font-size: 1.3em;
+        }
+        .detail-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #ecf0f1;
+        }
+        .detail-item:last-child {
+            border-bottom: none;
+        }
+        .detail-label {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .detail-value {
+            color: #7f8c8d;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .status-activa {
+            background: #d5f4e6;
+            color: #27ae60;
+        }
+        .status-agotada {
+            background: #fadbd8;
+            color: #e74c3c;
+        }
+        .status-cancelada {
+            background: #fef9e7;
+            color: #f39c12;
+        }
+        .tipo-badge {
+            display: inline-block;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .tipo-normal {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+        .tipo-estreno {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+        .tipo-vip {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+        .tipo-matine {
+            background: #e8f5e8;
+            color: #2e7d32;
+        }
+        .ocupacion-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .ocupacion-number {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #27ae60;
+            transition: width 0.3s ease;
+        }
+        .actions {
+            text-align: center;
+            margin-top: 30px;
+        }
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+            margin: 5px;
+            font-size: 1em;
+            transition: background 0.3s ease;
+        }
+        .btn:hover {
+            background: #2980b9;
+        }
+        .btn-success {
+            background: #27ae60;
+        }
+        .btn-success:hover {
+            background: #229954;
+        }
+        .btn-danger {
+            background: #e74c3c;
+        }
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        .btn-secondary {
+            background: #95a5a6;
+        }
+        .btn-secondary:hover {
+            background: #7f8c8d;
+        }
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            padding: 40px;
+        }
+        .error {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .back-btn {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #2c3e50;
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .boletos-section {
+            margin-top: 20px;
+        }
+        .boleto-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border: 1px solid #dee2e6;
+        }
+        .pelicula-info {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border: 2px solid #3498db;
+        }
+    </style>
+</head>
+<body>
+    <a href="/funciones" class="back-btn">← Volver a Funciones</a>
+    
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Detalle de Función</h1>
+            <p>Información completa de la función seleccionada</p>
+        </div>
+
+        <div id="funcionContainer">
+            <div class="loading">
+                <p>🔄 Cargando información de la función...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api/funciones';
+        const BOLETOS_API = '/api/boletos';
+
+        // Obtener ID de la URL
+        const funcionId = window.location.pathname.split('/').pop();
+
+        async function loadFuncionDetail() {
+            try {
+                const response = await fetch(`${API_BASE}/${funcionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayFuncionDetail(data.data);
+                    loadBoletosFuncion(funcionId);
+                } else {
+                    showError('Error al cargar la función: ' + data.message);
+                }
+            } catch (error) {
+                showError('Error de conexión: ' + error.message);
+            }
+        }
+
+        async function loadBoletosFuncion(funcionId) {
+            try {
+                const response = await fetch(`${BOLETOS_API}/funcion/${funcionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayBoletos(data.data);
+                }
+            } catch (error) {
+                console.error('Error al cargar boletos:', error);
+            }
+        }
+
+        function displayFuncionDetail(funcion) {
+            const container = document.getElementById('funcionContainer');
+            
+            const statusClass = `status-${funcion.estado}`;
+            const tipoClass = `tipo-${funcion.tipo.toLowerCase()}`;
+            
+            // Calcular porcentaje de ocupación
+            const totalAsientos = funcion.asientosDisponibles + funcion.asientosOcupados;
+            const porcentajeOcupacion = totalAsientos > 0 ? (funcion.asientosOcupados / totalAsientos) * 100 : 0;
+
+            container.innerHTML = `
+                <div class="detail-container">
+                    <div class="pelicula-info">
+                        <h3 style="margin: 0 0 15px 0; color: #2c3e50;">
+                            🎬 ${funcion.pelicula ? funcion.pelicula.titulo : 'Película no disponible'}
+                        </h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Género:</span>
+                            <span class="detail-value">${funcion.pelicula ? funcion.pelicula.genero : 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Duración:</span>
+                            <span class="detail-value">${funcion.pelicula ? funcion.pelicula.duracion + ' minutos' : 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Director:</span>
+                            <span class="detail-value">${funcion.pelicula ? funcion.pelicula.director : 'No disponible'}</span>
+                        </div>
+                    </div>
+
+                    <div class="ocupacion-display">
+                        <h3>📊 Ocupación de la Sala</h3>
+                        <div class="ocupacion-number">${funcion.asientosOcupados}/${totalAsientos}</div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${porcentajeOcupacion}%"></div>
+                        </div>
+                        <p>${porcentajeOcupacion.toFixed(1)}% de ocupación</p>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>🎭 Información de la Función</h3>
+                        <div class="detail-item">
+                            <span class="detail-label">Sala:</span>
+                            <span class="detail-value">${funcion.sala ? funcion.sala.numero : 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Tipo de Sala:</span>
+                            <span class="detail-value">${funcion.sala ? funcion.sala.tipo : 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Capacidad:</span>
+                            <span class="detail-value">${funcion.sala ? funcion.sala.capacidad + ' asientos' : 'No disponible'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Fecha:</span>
+                            <span class="detail-value">${funcion.fecha}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Horario:</span>
+                            <span class="detail-value">${funcion.horaInicio} - ${funcion.horaFin}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Precio:</span>
+                            <span class="detail-value">$${funcion.precio}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Tipo:</span>
+                            <span class="detail-value">
+                                <span class="tipo-badge ${tipoClass}">${funcion.tipo}</span>
+                            </span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Estado:</span>
+                            <span class="detail-value">
+                                <span class="status-badge ${statusClass}">${funcion.estado}</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-section">
+                        <h3>🎫 Boletos Vendidos</h3>
+                        <div id="boletosContainer">
+                            <p>Cargando boletos...</p>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button class="btn" onclick="editFuncion(${funcion.id})">✏️ Editar Función</button>
+                        <button class="btn btn-success" onclick="comprarBoleto(${funcion.id})">🎫 Comprar Boleto</button>
+                        <button class="btn btn-danger" onclick="deleteFuncion(${funcion.id})">🗑️ Eliminar Función</button>
+                        <a href="/funciones" class="btn btn-secondary">📋 Ver Todas las Funciones</a>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayBoletos(boletos) {
+            const container = document.getElementById('boletosContainer');
+            
+            if (boletos.length === 0) {
+                container.innerHTML = '<p>No se han vendido boletos para esta función aún.</p>';
+                return;
+            }
+
+            container.innerHTML = `
+                <p><strong>Total de boletos vendidos: ${boletos.length}</strong></p>
+                ${boletos.map(boleto => `
+                <div class="boleto-item">
+                    <div class="detail-item">
+                        <span class="detail-label">Boleto #${boleto.id}:</span>
+                        <span class="detail-value">Asiento ${boleto.numeroAsiento}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Usuario:</span>
+                        <span class="detail-value">${boleto.usuario ? `${boleto.usuario.nombre} ${boleto.usuario.apellido}` : 'No disponible'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Precio:</span>
+                        <span class="detail-value">$${boleto.precio}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Estado:</span>
+                        <span class="detail-value">
+                            <span class="status-badge ${boleto.estado === 'confirmado' ? 'status-activa' : boleto.estado === 'usado' ? 'status-activa' : 'status-cancelada'}">${boleto.estado}</span>
+                        </span>
+                    </div>
+                </div>
+            `).join('')}`;
+        }
+
+        function showError(message) {
+            const container = document.getElementById('funcionContainer');
+            container.innerHTML = `<div class="error">${message}</div>`;
+        }
+
+        async function deleteFuncion(id) {
+            if (confirm('¿Estás seguro de que quieres eliminar esta función?')) {
+                try {
+                    const response = await fetch(`${API_BASE}/${id}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert('Función eliminada exitosamente');
+                        window.location.href = '/funciones';
+                    } else {
+                        alert('Error al eliminar la función: ' + data.message);
+                    }
+                } catch (error) {
+                    alert('Error al eliminar la función: ' + error.message);
+                }
+            }
+        }
+
+        function editFuncion(id) {
+            alert('Funcionalidad de edición pendiente de implementar');
+        }
+
+        function comprarBoleto(funcionId) {
+            window.location.href = `/boletos/agregar?funcion=${funcionId}`;
+        }
+
+        // Cargar detalles al cargar la página
+        window.onload = function() {
+            loadFuncionDetail();
+        };
+    </script>
+</body>
+</html>
+
