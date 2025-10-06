@@ -1,0 +1,64 @@
+[
+  {
+    "id": 1,
+    "numero": "Sala 1",
+    "capacidad": 150,
+    "tipo": "Premium",
+    "equipamiento": [
+      "Sonido Dolby Atmos",
+      "Pantalla 4K",
+      "Asientos Reclinables"
+    ],
+    "ubicacion": "Planta Baja",
+    "estado": "activa"
+  },
+  {
+    "id": 2,
+    "numero": "Sala 2",
+    "capacidad": 200,
+    "tipo": "Estándar",
+    "equipamiento": [
+      "Sonido Digital",
+      "Pantalla HD",
+      "Asientos Estándar"
+    ],
+    "ubicacion": "Planta Baja",
+    "estado": "activa"
+  },
+  {
+    "id": 3,
+    "numero": "Sala 3",
+    "capacidad": 120,
+    "tipo": "VIP",
+    "equipamiento": [
+      "Sonido Dolby Atmos",
+      "Pantalla 4K",
+      "Asientos VIP",
+      "Servicio a Asiento"
+    ],
+    "ubicacion": "Segundo Piso",
+    "estado": "activa"
+  },
+  {
+    "id": 4,
+    "numero": "Sala 4",
+    "capacidad": 80,
+    "tipo": "3D",
+    "equipamiento": [
+      "Sonido 3D",
+      "Pantalla 3D",
+      "Lentes 3D"
+    ],
+    "ubicacion": "Primer Piso",
+    "estado": "mantenimiento"
+  },
+  {
+    "numero": "wdfwfadafdsfsa",
+    "capacidad": 123,
+    "tipo": "Estándar",
+    "ubicacion": "Planta Baja",
+    "estado": "activa",
+    "equipamiento": [],
+    "id": 5
+  }
+]

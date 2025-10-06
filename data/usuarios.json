@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "nombre": "Juan",
+    "apellido": "Pérez",
+    "email": "juan.perez@email.com",
+    "telefono": "555-0101",
+    "fechaNacimiento": "1990-05-15",
+    "tipoUsuario": "cliente",
+    "fechaRegistro": "2023-01-10",
+    "estado": "activo",
+    "puntos": 250
+  },
+  {
+    "id": 2,
+    "nombre": "María",
+    "apellido": "García",
+    "email": "maria.garcia@email.com",
+    "telefono": "555-0102",
+    "fechaNacimiento": "1985-12-03",
+    "tipoUsuario": "vip",
+    "fechaRegistro": "2022-08-20",
+    "estado": "activo",
+    "puntos": 850
+  },
+  {
+    "id": 3,
+    "nombre": "Carlos",
+    "apellido": "López",
+    "email": "carlos.lopez@email.com",
+    "telefono": "555-0103",
+    "fechaNacimiento": "1992-07-22",
+    "tipoUsuario": "cliente",
+    "fechaRegistro": "2023-11-05",
+    "estado": "activo",
+    "puntos": 120
+  },
+  {
+    "id": 4,
+    "nombre": "Ana",
+    "apellido": "Martínez",
+    "email": "ana.martinez@email.com",
+    "telefono": "555-0104",
+    "fechaNacimiento": "1988-03-18",
+    "tipoUsuario": "admin",
+    "fechaRegistro": "2022-01-01",
+    "estado": "activo",
+    "puntos": 0
+  }
+]
