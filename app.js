@@ -10,6 +10,7 @@ var peliculasRouter = require('./routes/peliculas');
 var salasRouter = require('./routes/salas');
 var funcionesRouter = require('./routes/funciones');
 var boletosRouter = require('./routes/boletos');
+var usuariosRouter = require('./routes/usuarios');
 
 var app = express();
 
@@ -27,7 +28,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 
 // Rutas API
+// Rutas para usuarios: mantenemos /api/users por compatibilidad y añadimos /api/usuarios
 app.use('/api/users', usersRouter);
+app.use('/api/usuarios', usuariosRouter);
 app.use('/api/peliculas', peliculasRouter);
 app.use('/api/salas', salasRouter);
 app.use('/api/funciones', funcionesRouter);
