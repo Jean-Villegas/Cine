@@ -1,17 +1,11 @@
-const { 
-    getUsuarios, 
-    getUsuarioById, 
-    addUsuario, 
-    updateUsuario, 
-    deleteUsuario 
-} = require('../data/entities');
+const usuariosModel = require('../models/usuariosModel');
 
 class UsuariosController {
     
     // GET /usuarios - Listar todos los usuarios
     async listar(req, res) {
         try {
-            const usuarios = getUsuarios();
+            const usuarios = await usuariosModel.getAll();
             res.status(200).json({
                 success: true,
                 message: 'Usuarios obtenidos exitosamente',
@@ -31,7 +25,7 @@ class UsuariosController {
     async obtenerPorId(req, res) {
         try {
             const { id } = req.params;
-            const usuario = getUsuarioById(id);
+            const usuario = await usuariosModel.getById(id);
             
             if (!usuario) {
                 return res.status(404).json({
@@ -68,7 +62,7 @@ class UsuariosController {
             }
 
             // Verificar si el email ya existe
-            const usuarios = getUsuarios();
+            const usuarios = await usuariosModel.getAll();
             const emailExiste = usuarios.some(u => u.email === usuarioData.email);
             
             if (emailExiste) {
@@ -78,7 +72,7 @@ class UsuariosController {
                 });
             }
 
-            const nuevoUsuario = addUsuario(usuarioData);
+            const nuevoUsuario = await usuariosModel.create(usuarioData);
             
             res.status(201).json({
                 success: true,
@@ -100,7 +94,7 @@ class UsuariosController {
             const { id } = req.params;
             const datosActualizacion = req.body;
             
-            const usuarioActualizado = updateUsuario(id, datosActualizacion);
+            const usuarioActualizado = await usuariosModel.update(id, datosActualizacion);
             
             if (!usuarioActualizado) {
                 return res.status(404).json({
@@ -127,7 +121,7 @@ class UsuariosController {
     async eliminar(req, res) {
         try {
             const { id } = req.params;
-            const usuarioEliminado = deleteUsuario(id);
+            const usuarioEliminado = await usuariosModel.remove(id);
             
             if (!usuarioEliminado) {
                 return res.status(404).json({
@@ -154,7 +148,7 @@ class UsuariosController {
     async obtenerPorTipo(req, res) {
         try {
             const { tipo } = req.params;
-            const usuarios = getUsuarios().filter(u => u.tipoUsuario.toLowerCase() === tipo.toLowerCase());
+            const usuarios = (await usuariosModel.getAll()).filter(u => (u.tipo_usuario || u.tipoUsuario).toLowerCase() === tipo.toLowerCase());
             
             res.status(200).json({
                 success: true,
@@ -174,7 +168,7 @@ class UsuariosController {
     // GET /usuarios/activos - Obtener solo usuarios activos
     async obtenerActivos(req, res) {
         try {
-            const usuarios = getUsuarios().filter(u => u.estado === 'activo');
+            const usuarios = (await usuariosModel.getAll()).filter(u => u.estado === 'activo');
             res.status(200).json({
                 success: true,
                 message: 'Usuarios activos obtenidos exitosamente',
@@ -202,7 +196,7 @@ class UsuariosController {
                 });
             }
 
-            const usuario = getUsuarios().find(u => u.email === email);
+            const usuario = (await usuariosModel.getAll()).find(u => u.email === email);
             
             if (!usuario) {
                 return res.status(404).json({
@@ -227,6 +221,30 @@ class UsuariosController {
                 message: 'Error en el login',
                 error: error.message
             });
+        }
+    }
+
+    // Render views
+    async renderList(req, res) {
+        try {
+            const usuarios = await usuariosModel.getAll();
+            res.render('usuarios', { title: 'Usuarios - CineApp', usuarios });
+        } catch (err) {
+            res.render('usuarios', { title: 'Usuarios - CineApp', usuarios: [] });
+        }
+    }
+
+    async renderForm(req, res) {
+        res.render('usuario-form', { title: 'Agregar Usuario - CineApp' });
+    }
+
+    async renderDetail(req, res) {
+        const { id } = req.params;
+        try {
+            const usuario = await usuariosModel.getById(id);
+            res.render('usuario-detalle', { title: 'Detalle de Usuario - CineApp', usuario });
+        } catch (err) {
+            res.render('usuario-detalle', { title: 'Detalle de Usuario - CineApp', usuario: null });
         }
     }
 }

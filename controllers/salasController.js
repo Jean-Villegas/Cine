@@ -1,17 +1,11 @@
-const { 
-    getSalas, 
-    getSalaById, 
-    addSala, 
-    updateSala, 
-    deleteSala 
-} = require('../data/entities');
+const salasModel = require('../models/salasModel');
 
 class SalasController {
     
     // GET /salas - Listar todas las salas
     async listar(req, res) {
         try {
-            const salas = getSalas();
+            const salas = await salasModel.getAll();
             res.status(200).json({
                 success: true,
                 message: 'Salas obtenidas exitosamente',
@@ -31,7 +25,7 @@ class SalasController {
     async obtenerPorId(req, res) {
         try {
             const { id } = req.params;
-            const sala = getSalaById(id);
+            const sala = await salasModel.getById(id);
             
             if (!sala) {
                 return res.status(404).json({
@@ -67,7 +61,7 @@ class SalasController {
                 });
             }
 
-            const nuevaSala = addSala(salaData);
+            const nuevaSala = await salasModel.create(salaData);
             
             res.status(201).json({
                 success: true,
@@ -89,7 +83,7 @@ class SalasController {
             const { id } = req.params;
             const datosActualizacion = req.body;
             
-            const salaActualizada = updateSala(id, datosActualizacion);
+            const salaActualizada = await salasModel.update(id, datosActualizacion);
             
             if (!salaActualizada) {
                 return res.status(404).json({
@@ -116,7 +110,7 @@ class SalasController {
     async eliminar(req, res) {
         try {
             const { id } = req.params;
-            const salaEliminada = deleteSala(id);
+            const salaEliminada = await salasModel.remove(id);
             
             if (!salaEliminada) {
                 return res.status(404).json({
@@ -142,7 +136,7 @@ class SalasController {
     // GET /salas/activas - Obtener solo salas activas
     async obtenerActivas(req, res) {
         try {
-            const salas = getSalas().filter(s => s.estado === 'activa');
+            const salas = (await salasModel.getAll()).filter(s => s.estado === 'activa');
             res.status(200).json({
                 success: true,
                 message: 'Salas activas obtenidas exitosamente',
@@ -162,7 +156,7 @@ class SalasController {
     async obtenerPorTipo(req, res) {
         try {
             const { tipo } = req.params;
-            const salas = getSalas().filter(s => s.tipo.toLowerCase() === tipo.toLowerCase());
+            const salas = (await salasModel.getAll()).filter(s => s.tipo.toLowerCase() === tipo.toLowerCase());
             
             res.status(200).json({
                 success: true,
@@ -176,6 +170,30 @@ class SalasController {
                 message: 'Error al obtener las salas por tipo',
                 error: error.message
             });
+        }
+    }
+
+    // Render views
+    async renderList(req, res) {
+        try {
+            const salas = await salasModel.getAll();
+            res.render('salas', { title: 'Salas - CineApp', salas });
+        } catch (err) {
+            res.render('salas', { title: 'Salas - CineApp', salas: [] });
+        }
+    }
+
+    async renderForm(req, res) {
+        res.render('sala-form', { title: 'Agregar Sala - CineApp' });
+    }
+
+    async renderDetail(req, res) {
+        const { id } = req.params;
+        try {
+            const sala = await salasModel.getById(id);
+            res.render('sala-detalle', { title: 'Detalle de Sala - CineApp', sala });
+        } catch (err) {
+            res.render('sala-detalle', { title: 'Detalle de Sala - CineApp', sala: null });
         }
     }
 }

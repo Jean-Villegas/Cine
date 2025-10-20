@@ -1,17 +1,11 @@
-const { 
-    getPeliculas, 
-    getPeliculaById, 
-    addPelicula, 
-    updatePelicula, 
-    deletePelicula 
-} = require('../data/entities');
+const peliculasModel = require('../models/peliculasModel');
 
 class PeliculasController {
     
     // GET /peliculas - Listar todas las películas
     async listar(req, res) {
         try {
-            const peliculas = getPeliculas();
+            const peliculas = await peliculasModel.getAll();
             res.status(200).json({
                 success: true,
                 message: 'Películas obtenidas exitosamente',
@@ -31,7 +25,7 @@ class PeliculasController {
     async obtenerPorId(req, res) {
         try {
             const { id } = req.params;
-            const pelicula = getPeliculaById(id);
+            const pelicula = await peliculasModel.getById(id);
             
             if (!pelicula) {
                 return res.status(404).json({
@@ -67,7 +61,7 @@ class PeliculasController {
                 });
             }
 
-            const nuevaPelicula = addPelicula(peliculaData);
+            const nuevaPelicula = await peliculasModel.create(peliculaData);
             
             res.status(201).json({
                 success: true,
@@ -89,7 +83,7 @@ class PeliculasController {
             const { id } = req.params;
             const datosActualizacion = req.body;
             
-            const peliculaActualizada = updatePelicula(id, datosActualizacion);
+            const peliculaActualizada = await peliculasModel.update(id, datosActualizacion);
             
             if (!peliculaActualizada) {
                 return res.status(404).json({
@@ -116,7 +110,7 @@ class PeliculasController {
     async eliminar(req, res) {
         try {
             const { id } = req.params;
-            const peliculaEliminada = deletePelicula(id);
+            const peliculaEliminada = await peliculasModel.remove(id);
             
             if (!peliculaEliminada) {
                 return res.status(404).json({
@@ -142,7 +136,7 @@ class PeliculasController {
     // GET /peliculas/activas - Obtener solo películas activas
     async obtenerActivas(req, res) {
         try {
-            const peliculas = getPeliculas().filter(p => p.estado === 'activa');
+            const peliculas = (await peliculasModel.getAll()).filter(p => p.estado === 'activa');
             res.status(200).json({
                 success: true,
                 message: 'Películas activas obtenidas exitosamente',
@@ -155,6 +149,34 @@ class PeliculasController {
                 message: 'Error al obtener las películas activas',
                 error: error.message
             });
+        }
+    }
+
+    // Render views
+    // GET /peliculas (vista)
+    async renderList(req, res) {
+        try {
+            const peliculas = await peliculasModel.getAll();
+            res.render('peliculas', { title: 'Películas - CineApp', peliculas });
+        } catch (err) {
+            res.render('peliculas', { title: 'Películas - CineApp', peliculas: [] });
+        }
+    }
+
+    // GET /peliculas/agregar (vista)
+    async renderForm(req, res) {
+        res.render('pelicula-form', { title: 'Agregar Película - CineApp' });
+    }
+
+    // GET /peliculas/:id (vista detalle)
+    async renderDetail(req, res) {
+        const { id } = req.params;
+        try {
+            const pelicula = await peliculasModel.getById(id);
+            if (!pelicula) return res.status(404).render('pelicula-detalle', { title: 'Detalle de Película - CineApp', pelicula: null });
+            res.render('pelicula-detalle', { title: 'Detalle de Película - CineApp', pelicula });
+        } catch (err) {
+            res.status(500).render('pelicula-detalle', { title: 'Detalle de Película - CineApp', pelicula: null });
         }
     }
 }

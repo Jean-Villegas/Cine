@@ -1,23 +1,17 @@
-const { 
-    getBoletos, 
-    getBoletoById, 
-    addBoleto, 
-    updateBoleto, 
-    deleteBoleto,
-    getFuncionById,
-    getUsuarioById
-} = require('../data/entities');
+const boletosModel = require('../models/boletosModel');
+const funcionesModel = require('../models/funcionesModel');
+const usuariosModel = require('../models/usuariosModel');
 
 class BoletosController {
     
     // GET /boletos - Listar todos los boletos
     async listar(req, res) {
         try {
-            const boletos = getBoletos();
+            const boletos = await boletosModel.getAll();
             // Enriquecer con datos de función y usuario
-            const boletosCompletos = boletos.map(boleto => {
-                const funcion = getFuncionById(boleto.funcionId);
-                const usuario = getUsuarioById(boleto.usuarioId);
+            const boletosCompletos = await Promise.all(boletos.map(async boleto => {
+                const funcion = await funcionesModel.getById(boleto.funcion_id || boleto.funcionId);
+                const usuario = await usuariosModel.getById(boleto.usuario_id || boleto.usuarioId);
                 return {
                     ...boleto,
                     funcion: funcion || null,
@@ -28,7 +22,7 @@ class BoletosController {
                         email: usuario.email
                     } : null
                 };
-            });
+            }));
 
             res.status(200).json({
                 success: true,
@@ -49,7 +43,7 @@ class BoletosController {
     async obtenerPorId(req, res) {
         try {
             const { id } = req.params;
-            const boleto = getBoletoById(id);
+            const boleto = await boletosModel.getById(id);
             
             if (!boleto) {
                 return res.status(404).json({
@@ -59,8 +53,8 @@ class BoletosController {
             }
 
             // Enriquecer con datos de función y usuario
-            const funcion = getFuncionById(boleto.funcionId);
-            const usuario = getUsuarioById(boleto.usuarioId);
+            const funcion = await funcionesModel.getById(boleto.funcion_id || boleto.funcionId);
+            const usuario = await usuariosModel.getById(boleto.usuario_id || boleto.usuarioId);
             const boletoCompleto = {
                 ...boleto,
                 funcion: funcion || null,
@@ -100,8 +94,8 @@ class BoletosController {
             }
 
             // Verificar que la función y usuario existen
-            const funcion = getFuncionById(boletoData.funcionId);
-            const usuario = getUsuarioById(boletoData.usuarioId);
+            const funcion = await funcionesModel.getById(boletoData.funcionId);
+            const usuario = await usuariosModel.getById(boletoData.usuarioId);
             
             if (!funcion) {
                 return res.status(400).json({
@@ -118,7 +112,7 @@ class BoletosController {
             }
 
             // Verificar disponibilidad de asientos
-            if (funcion.asientosDisponibles <= 0) {
+            if ((funcion.asientos_disponibles || funcion.asientosDisponibles) <= 0) {
                 return res.status(400).json({
                     success: false,
                     message: 'No hay asientos disponibles para esta función'
@@ -128,8 +122,10 @@ class BoletosController {
             // Generar código QR único
             const codigoQR = `QR${Date.now()}${Math.random().toString(36).substr(2, 9)}`;
 
-            const nuevoBoleto = addBoleto({
-                ...boletoData,
+            const nuevoBoleto = await boletosModel.create({
+                funcionId: boletoData.funcionId,
+                usuarioId: boletoData.usuarioId,
+                numeroAsiento: boletoData.numeroAsiento,
                 precio: funcion.precio,
                 fechaCompra: new Date().toISOString().split('T')[0],
                 horaCompra: new Date().toTimeString().split(' ')[0],
@@ -158,7 +154,7 @@ class BoletosController {
             const { id } = req.params;
             const datosActualizacion = req.body;
             
-            const boletoActualizado = updateBoleto(id, datosActualizacion);
+            const boletoActualizado = await boletosModel.update(id, datosActualizacion);
             
             if (!boletoActualizado) {
                 return res.status(404).json({
@@ -185,7 +181,7 @@ class BoletosController {
     async cancelar(req, res) {
         try {
             const { id } = req.params;
-            const boletoEliminado = deleteBoleto(id);
+            const boletoEliminado = await boletosModel.remove(id);
             
             if (!boletoEliminado) {
                 return res.status(404).json({
@@ -212,7 +208,7 @@ class BoletosController {
     async obtenerPorUsuario(req, res) {
         try {
             const { usuarioId } = req.params;
-            const boletos = getBoletos().filter(b => b.usuarioId === parseInt(usuarioId));
+            const boletos = (await boletosModel.getAll()).filter(b => (b.usuario_id || b.usuarioId) === parseInt(usuarioId));
             
             res.status(200).json({
                 success: true,
@@ -233,7 +229,7 @@ class BoletosController {
     async obtenerPorFuncion(req, res) {
         try {
             const { funcionId } = req.params;
-            const boletos = getBoletos().filter(b => b.funcionId === parseInt(funcionId));
+            const boletos = (await boletosModel.getAll()).filter(b => (b.funcion_id || b.funcionId) === parseInt(funcionId));
             
             res.status(200).json({
                 success: true,
@@ -254,7 +250,7 @@ class BoletosController {
     async usarBoleto(req, res) {
         try {
             const { id } = req.params;
-            const boleto = getBoletoById(id);
+            const boleto = await boletosModel.getById(id);
             
             if (!boleto) {
                 return res.status(404).json({
@@ -270,7 +266,7 @@ class BoletosController {
                 });
             }
 
-            const boletoActualizado = updateBoleto(id, { estado: 'usado' });
+            const boletoActualizado = await boletosModel.update(id, { estado: 'usado' });
 
             res.status(200).json({
                 success: true,
@@ -283,6 +279,40 @@ class BoletosController {
                 message: 'Error al marcar el boleto como usado',
                 error: error.message
             });
+        }
+    }
+
+    // Render views
+    async renderList(req, res) {
+        try {
+            const boletos = await boletosModel.getAll();
+            res.render('boletos', { title: 'Boletos - CineApp', boletos });
+        } catch (err) {
+            res.render('boletos', { title: 'Boletos - CineApp', boletos: [] });
+        }
+    }
+
+    async renderForm(req, res) {
+        // Para el formulario puede ser útil enviar lista de funciones y usuarios
+        try {
+            const funciones = await funcionesModel.getAll();
+            const usuarios = await usuariosModel.getAll();
+            res.render('boleto-form', { title: 'Agregar Boleto - CineApp', funciones, usuarios });
+        } catch (err) {
+            res.render('boleto-form', { title: 'Agregar Boleto - CineApp', funciones: [], usuarios: [] });
+        }
+    }
+
+    async renderDetail(req, res) {
+        const { id } = req.params;
+        try {
+            const boleto = await boletosModel.getById(id);
+            if (!boleto) return res.status(404).render('boleto-detalle', { title: 'Detalle de Boleto - CineApp', boleto: null });
+            const funcion = await funcionesModel.getById(boleto.funcion_id || boleto.funcionId);
+            const usuario = await usuariosModel.getById(boleto.usuario_id || boleto.usuarioId);
+            res.render('boleto-detalle', { title: 'Detalle de Boleto - CineApp', boleto: { ...boleto, funcion, usuario } });
+        } catch (err) {
+            res.status(500).render('boleto-detalle', { title: 'Detalle de Boleto - CineApp', boleto: null });
         }
     }
 }

@@ -1,29 +1,23 @@
-const { 
-    getFunciones, 
-    getFuncionById, 
-    addFuncion, 
-    updateFuncion, 
-    deleteFuncion,
-    getPeliculaById,
-    getSalaById
-} = require('../data/entities');
+const funcionesModel = require('../models/funcionesModel');
+const peliculasModel = require('../models/peliculasModel');
+const salasModel = require('../models/salasModel');
 
 class FuncionesController {
     
     // GET /funciones - Listar todas las funciones
     async listar(req, res) {
         try {
-            const funciones = getFunciones();
+            const funciones = await funcionesModel.getAll();
             // Enriquecer con datos de película y sala
-            const funcionesCompletas = funciones.map(funcion => {
-                const pelicula = getPeliculaById(funcion.peliculaId);
-                const sala = getSalaById(funcion.salaId);
+            const funcionesCompletas = await Promise.all(funciones.map(async funcion => {
+                const pelicula = await peliculasModel.getById(funcion.pelicula_id || funcion.peliculaId);
+                const sala = await salasModel.getById(funcion.sala_id || funcion.salaId);
                 return {
                     ...funcion,
                     pelicula: pelicula || null,
                     sala: sala || null
                 };
-            });
+            }));
 
             res.status(200).json({
                 success: true,
@@ -44,7 +38,7 @@ class FuncionesController {
     async obtenerPorId(req, res) {
         try {
             const { id } = req.params;
-            const funcion = getFuncionById(id);
+            const funcion = await funcionesModel.getById(id);
             
             if (!funcion) {
                 return res.status(404).json({
@@ -54,8 +48,8 @@ class FuncionesController {
             }
 
             // Enriquecer con datos de película y sala
-            const pelicula = getPeliculaById(funcion.peliculaId);
-            const sala = getSalaById(funcion.salaId);
+            const pelicula = await peliculasModel.getById(funcion.pelicula_id || funcion.peliculaId);
+            const sala = await salasModel.getById(funcion.sala_id || funcion.salaId);
             const funcionCompleta = {
                 ...funcion,
                 pelicula: pelicula || null,
@@ -90,8 +84,8 @@ class FuncionesController {
             }
 
             // Verificar que la película y sala existen
-            const pelicula = getPeliculaById(funcionData.peliculaId);
-            const sala = getSalaById(funcionData.salaId);
+            const pelicula = await peliculasModel.getById(funcionData.peliculaId);
+            const sala = await salasModel.getById(funcionData.salaId);
             
             if (!pelicula) {
                 return res.status(400).json({
@@ -107,7 +101,7 @@ class FuncionesController {
                 });
             }
 
-            const nuevaFuncion = addFuncion(funcionData);
+            const nuevaFuncion = await funcionesModel.create(funcionData);
             
             res.status(201).json({
                 success: true,
@@ -129,7 +123,7 @@ class FuncionesController {
             const { id } = req.params;
             const datosActualizacion = req.body;
             
-            const funcionActualizada = updateFuncion(id, datosActualizacion);
+            const funcionActualizada = await funcionesModel.update(id, datosActualizacion);
             
             if (!funcionActualizada) {
                 return res.status(404).json({
@@ -156,7 +150,7 @@ class FuncionesController {
     async eliminar(req, res) {
         try {
             const { id } = req.params;
-            const funcionEliminada = deleteFuncion(id);
+            const funcionEliminada = await funcionesModel.remove(id);
             
             if (!funcionEliminada) {
                 return res.status(404).json({
@@ -183,7 +177,7 @@ class FuncionesController {
     async obtenerPorPelicula(req, res) {
         try {
             const { peliculaId } = req.params;
-            const funciones = getFunciones().filter(f => f.peliculaId === parseInt(peliculaId));
+            const funciones = (await funcionesModel.getAll()).filter(f => (f.pelicula_id || f.peliculaId) === parseInt(peliculaId));
             
             res.status(200).json({
                 success: true,
@@ -204,7 +198,7 @@ class FuncionesController {
     async obtenerPorFecha(req, res) {
         try {
             const { fecha } = req.params;
-            const funciones = getFunciones().filter(f => f.fecha === fecha);
+            const funciones = (await funcionesModel.getAll()).filter(f => f.fecha === fecha);
             
             res.status(200).json({
                 success: true,
@@ -218,6 +212,46 @@ class FuncionesController {
                 message: 'Error al obtener las funciones por fecha',
                 error: error.message
             });
+        }
+    }
+
+    // Render views
+    async renderList(req, res) {
+        try {
+            const funciones = await funcionesModel.getAll();
+            // opcionalmente enriquecer con peliculas y salas para el render
+            const funcionesCompletas = await Promise.all(funciones.map(async f => {
+                const pelicula = await peliculasModel.getById(f.pelicula_id || f.peliculaId);
+                const sala = await salasModel.getById(f.sala_id || f.salaId);
+                return { ...f, pelicula, sala };
+            }));
+            res.render('funciones', { title: 'Funciones - CineApp', funciones: funcionesCompletas });
+        } catch (err) {
+            res.render('funciones', { title: 'Funciones - CineApp', funciones: [] });
+        }
+    }
+
+    async renderForm(req, res) {
+        // Para el formulario conviene pasar listas de peliculas y salas
+        try {
+            const peliculas = await peliculasModel.getAll();
+            const salas = await salasModel.getAll();
+            res.render('funcion-form', { title: 'Agregar Función - CineApp', peliculas, salas });
+        } catch (err) {
+            res.render('funcion-form', { title: 'Agregar Función - CineApp', peliculas: [], salas: [] });
+        }
+    }
+
+    async renderDetail(req, res) {
+        const { id } = req.params;
+        try {
+            const funcion = await funcionesModel.getById(id);
+            if (!funcion) return res.status(404).render('funcion-detalle', { title: 'Detalle de Función - CineApp', funcion: null });
+            const pelicula = await peliculasModel.getById(funcion.pelicula_id || funcion.peliculaId);
+            const sala = await salasModel.getById(funcion.sala_id || funcion.salaId);
+            res.render('funcion-detalle', { title: 'Detalle de Función - CineApp', funcion: { ...funcion, pelicula, sala } });
+        } catch (err) {
+            res.status(500).render('funcion-detalle', { title: 'Detalle de Función - CineApp', funcion: null });
         }
     }
 }
