@@ -324,7 +324,6 @@
 
                     <div class="actions">
                         <button class="btn" onclick="printBoleto()">🖨️ Imprimir Boleto</button>
-                        <button class="btn" onclick="editBoleto(${boleto.id})">✏️ Editar</button>
                         <button class="btn btn-success" onclick="usarBoleto(${boleto.id})" ${boleto.estado === 'usado' ? 'disabled' : ''}>
                             ✅ ${boleto.estado === 'usado' ? 'Ya Usado' : 'Marcar como Usado'}
                         </button>
@@ -362,11 +361,6 @@
             }
         }
 
-        function editBoleto(id) {
-            // Redirigir a formulario de edición
-            window.location.href = `/boletos/${id}/editar?id=${id}`;
-        }
-
         async function cancelarBoleto(id) {
             if (confirm('¿Estás seguro de que quieres cancelar este boleto?')) {
                 try {
@@ -398,5 +392,4 @@
     </script>
 </body>
 </html>
-
 

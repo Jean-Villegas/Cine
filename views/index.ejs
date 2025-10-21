@@ -195,10 +195,6 @@
                     <div class="stat-number" id="boletos-count">-</div>
                     <div class="stat-label">Boletos Vendidos</div>
                 </div>
-                <div class="stat-item">
-                    <div class="stat-number" id="ingresos-total">$0</div>
-                    <div class="stat-label">Ingresos Totales</div>
-                </div>
             </div>
         </div>
 
@@ -207,10 +203,6 @@
             <div class="api-endpoints">
                 <div class="endpoint">
                     <div class="endpoint-method">GET</div>
-                    <div class="endpoint-url">/api/peliculas</div>
-                </div>
-                <div class="endpoint">
-                    <div class="endpoint-method">POST</div>
                     <div class="endpoint-url">/api/peliculas</div>
                 </div>
                 <div class="endpoint">
@@ -226,7 +218,7 @@
                     <div class="endpoint-url">/api/usuarios</div>
                 </div>
                 <div class="endpoint">
-                    <div class="endpoint-method">POST</div>
+                    <div class="endpoint-method">GET</div>
                     <div class="endpoint-url">/api/boletos</div>
                 </div>
             </div>
@@ -262,7 +254,7 @@
                 }
 
                 // Cargar usuarios activos
-                const usuariosResponse = await fetch('/api/users/activos');
+                const usuariosResponse = await fetch('/api/usuarios/activos');
                 const usuariosData = await usuariosResponse.json();
                 if (usuariosData.success) {
                     document.getElementById('usuarios-count').textContent = usuariosData.data.length;
@@ -273,12 +265,6 @@
                 const boletosData = await boletosResponse.json();
                 if (boletosData.success) {
                     document.getElementById('boletos-count').textContent = boletosData.data.length;
-                    
-                    // Calcular ingresos totales
-                    const ingresos = boletosData.data.reduce((total, boleto) => {
-                        return total + (boleto.precio || 0);
-                    }, 0);
-                    document.getElementById('ingresos-total').textContent = `$${ingresos}`;
                 }
 
             } catch (error) {
@@ -289,7 +275,6 @@
                 document.getElementById('funciones-count').textContent = 'Error';
                 document.getElementById('usuarios-count').textContent = 'Error';
                 document.getElementById('boletos-count').textContent = 'Error';
-                document.getElementById('ingresos-total').textContent = '$Error';
             }
         }
 
@@ -308,7 +293,6 @@
             document.getElementById('funciones-count').textContent = '-';
             document.getElementById('usuarios-count').textContent = '-';
             document.getElementById('boletos-count').textContent = '-';
-            document.getElementById('ingresos-total').textContent = '$0';
             
             loadStats();
         }
