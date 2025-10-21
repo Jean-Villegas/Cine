@@ -1,5 +1,10 @@
 var express = require('express');
 var router = express.Router();
+const peliculasController = require('../controllers/peliculasController');
+const salasController = require('../controllers/salasController');
+const funcionesController = require('../controllers/funcionesController');
+const usuariosController = require('../controllers/usuariosController');
+const boletosController = require('../controllers/boletosController');
 
 // ===== RUTAS DE VISTAS =====
 
@@ -9,24 +14,13 @@ router.get('/', function(req, res, next) {
 });
 
 /* GET películas page. */
-router.get('/peliculas', function(req, res, next) {
-  res.render('peliculas', { title: 'Películas - CineApp' });
-});
+router.get('/peliculas', peliculasController.renderList.bind(peliculasController));
 
 /* GET formulario para agregar película. */
-router.get('/peliculas/agregar', function(req, res, next) {
-  res.render('pelicula-form', { title: 'Agregar Película - CineApp' });
-});
-
-/* GET formulario para editar película. */
-router.get('/peliculas/:id/editar', function(req, res, next) {
-  res.render('pelicula-edit', { title: 'Editar Película - CineApp' });
-});
+router.get('/peliculas/agregar', peliculasController.renderForm.bind(peliculasController));
 
 /* GET detalle de película. */
-router.get('/peliculas/:id', function(req, res, next) {
-  res.render('pelicula-detalle', { title: 'Detalle de Película - CineApp' });
-});
+router.get('/peliculas/:id', peliculasController.renderDetail.bind(peliculasController));
 
 /* GET página de confirmación. */
 router.get('/confirmacion', function(req, res, next) {
@@ -34,84 +28,40 @@ router.get('/confirmacion', function(req, res, next) {
 });
 
 /* GET salas page. */
-router.get('/salas', function(req, res, next) {
-  res.render('salas', { title: 'Salas - CineApp' });
-});
+router.get('/salas', salasController.renderList.bind(salasController));
 
 /* GET formulario para agregar sala. */
-router.get('/salas/agregar', function(req, res, next) {
-  res.render('sala-form', { title: 'Agregar Sala - CineApp' });
-});
-
-/* GET formulario para editar sala. */
-router.get('/salas/:id/editar', function(req, res, next) {
-  res.render('sala-edit', { title: 'Editar Sala - CineApp' });
-});
+router.get('/salas/agregar', salasController.renderForm.bind(salasController));
 
 /* GET detalle de sala. */
-router.get('/salas/:id', function(req, res, next) {
-  res.render('sala-detalle', { title: 'Detalle de Sala - CineApp' });
-});
+router.get('/salas/:id', salasController.renderDetail.bind(salasController));
 
 /* GET funciones page. */
-router.get('/funciones', function(req, res, next) {
-  res.render('funciones', { title: 'Funciones - CineApp' });
-});
+router.get('/funciones', funcionesController.renderList ? funcionesController.renderList.bind(funcionesController) : function(req,res){res.render('funciones',{title:'Funciones - CineApp'});} );
 
 /* GET formulario para agregar función. */
-router.get('/funciones/agregar', function(req, res, next) {
-  res.render('funcion-form', { title: 'Agregar Función - CineApp' });
-});
-
-/* GET formulario para editar función. */
-router.get('/funciones/:id/editar', function(req, res, next) {
-  res.render('funcion-edit', { title: 'Editar Función - CineApp' });
-});
+router.get('/funciones/agregar', funcionesController.renderForm ? funcionesController.renderForm.bind(funcionesController) : function(req,res){res.render('funcion-form',{title:'Agregar Función - CineApp'});} );
 
 /* GET detalle de función. */
-router.get('/funciones/:id', function(req, res, next) {
-  res.render('funcion-detalle', { title: 'Detalle de Función - CineApp' });
-});
+router.get('/funciones/:id', funcionesController.renderDetail ? funcionesController.renderDetail.bind(funcionesController) : function(req,res){res.render('funcion-detalle',{title:'Detalle de Función - CineApp'});} );
 
 /* GET usuarios page. */
-router.get('/usuarios', function(req, res, next) {
-  res.render('usuarios', { title: 'Usuarios - CineApp' });
-});
+router.get('/usuarios', usuariosController.renderList ? usuariosController.renderList.bind(usuariosController) : function(req,res){res.render('usuarios',{title:'Usuarios - CineApp'});} );
 
 /* GET formulario para agregar usuario. */
-router.get('/usuarios/agregar', function(req, res, next) {
-  res.render('usuario-form', { title: 'Agregar Usuario - CineApp' });
-});
-
-/* GET formulario para editar usuario. */
-router.get('/usuarios/:id/editar', function(req, res, next) {
-  res.render('usuario-edit', { title: 'Editar Usuario - CineApp' });
-});
+router.get('/usuarios/agregar', usuariosController.renderForm ? usuariosController.renderForm.bind(usuariosController) : function(req,res){res.render('usuario-form',{title:'Agregar Usuario - CineApp'});} );
 
 /* GET detalle de usuario. */
-router.get('/usuarios/:id', function(req, res, next) {
-  res.render('usuario-detalle', { title: 'Detalle de Usuario - CineApp' });
-});
+router.get('/usuarios/:id', usuariosController.renderDetail ? usuariosController.renderDetail.bind(usuariosController) : function(req,res){res.render('usuario-detalle',{title:'Detalle de Usuario - CineApp'});} );
 
 /* GET boletos page. */
-router.get('/boletos', function(req, res, next) {
-  res.render('boletos', { title: 'Boletos - CineApp' });
-});
+router.get('/boletos', boletosController.renderList ? boletosController.renderList.bind(boletosController) : function(req,res){res.render('boletos',{title:'Boletos - CineApp'});} );
 
 /* GET formulario para agregar boleto. */
-router.get('/boletos/agregar', function(req, res, next) {
-  res.render('boleto-form', { title: 'Agregar Boleto - CineApp' });
-});
-
-/* GET formulario para editar boleto. */
-router.get('/boletos/:id/editar', function(req, res, next) {
-  res.render('boleto-edit', { title: 'Editar Boleto - CineApp' });
-});
+router.get('/boletos/agregar', boletosController.renderForm ? boletosController.renderForm.bind(boletosController) : function(req,res){res.render('boleto-form',{title:'Agregar Boleto - CineApp'});} );
 
 /* GET detalle de boleto. */
-router.get('/boletos/:id', function(req, res, next) {
-  res.render('boleto-detalle', { title: 'Detalle de Boleto - CineApp' });
-});
+router.get('/boletos/:id', boletosController.renderDetail ? boletosController.renderDetail.bind(boletosController) : function(req,res){res.render('boleto-detalle',{title:'Detalle de Boleto - CineApp'});} );
 
 /* GET formulario de prueba. */
 router.get('/test', function(req, res, next) {
