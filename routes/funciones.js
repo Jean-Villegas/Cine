@@ -1,28 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const funcionesController = require('../controllers/funcionesController');
+const FuncionController = require('../controllers/funcionController');
 
-// ===== RUTAS PARA FUNCIONES =====
+// GET /api/funciones - Obtener todas las funciones
+router.get('/', (req, res) => {
+  FuncionController.getAll()
+    .then(funciones => {
+      res.send({
+        success: true,
+        data: funciones,
+        count: funciones.length
+      });
+    })
+    .catch(error => {
+      res.status(500).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /funciones - Listar todas las funciones
-router.get('/', funcionesController.listar);
+// GET /api/funciones/:id - Obtener una función por ID
+router.get('/:id', (req, res) => {
+  FuncionController.getById(req.params.id)
+    .then(funcion => {
+      res.send({
+        success: true,
+        data: funcion
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /funciones/pelicula/:peliculaId - Obtener funciones por película
-router.get('/pelicula/:peliculaId', funcionesController.obtenerPorPelicula);
+// POST /api/funciones - Crear una nueva función
+router.post('/', (req, res) => {
+  FuncionController.create(req.body)
+    .then(result => {
+      res.status(201).send({
+        success: true,
+        message: 'Función creada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(400).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /funciones/fecha/:fecha - Obtener funciones por fecha
-router.get('/fecha/:fecha', funcionesController.obtenerPorFecha);
+// PUT /api/funciones/:id - Actualizar una función
+router.put('/:id', (req, res) => {
+  FuncionController.update(req.params.id, req.body)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Función actualizada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /funciones/:id - Obtener función por ID
-router.get('/:id', funcionesController.obtenerPorId);
-
-// POST /funciones - Agregar nueva función
-router.post('/', funcionesController.agregar);
-
-// PUT /funciones/:id - Editar función existente
-router.put('/:id', funcionesController.editar);
-
-// DELETE /funciones/:id - Eliminar función
-router.delete('/:id', funcionesController.eliminar);
+// DELETE /api/funciones/:id - Eliminar una función
+router.delete('/:id', (req, res) => {
+  FuncionController.delete(req.params.id)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Función eliminada exitosamente'
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
 module.exports = router;

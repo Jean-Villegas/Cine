@@ -1,28 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const salasController = require('../controllers/salasController');
+const SalaController = require('../controllers/salaController');
 
-// ===== RUTAS PARA SALAS =====
+// GET /api/salas - Obtener todas las salas
+router.get('/', (req, res) => {
+  SalaController.getAll()
+    .then(salas => {
+      res.send({
+        success: true,
+        data: salas,
+        count: salas.length
+      });
+    })
+    .catch(error => {
+      res.status(500).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /salas - Listar todas las salas
-router.get('/', salasController.listar);
+// GET /api/salas/:id - Obtener una sala por ID
+router.get('/:id', (req, res) => {
+  SalaController.getById(req.params.id)
+    .then(sala => {
+      res.send({
+        success: true,
+        data: sala
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /salas/activas - Listar solo salas activas
-router.get('/activas', salasController.obtenerActivas);
+// POST /api/salas - Crear una nueva sala
+router.post('/', (req, res) => {
+  SalaController.create(req.body)
+    .then(result => {
+      res.status(201).send({
+        success: true,
+        message: 'Sala creada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(400).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /salas/tipo/:tipo - Listar salas por tipo
-router.get('/tipo/:tipo', salasController.obtenerPorTipo);
+// PUT /api/salas/:id - Actualizar una sala
+router.put('/:id', (req, res) => {
+  SalaController.update(req.params.id, req.body)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Sala actualizada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /salas/:id - Obtener sala por ID
-router.get('/:id', salasController.obtenerPorId);
-
-// POST /salas - Agregar nueva sala
-router.post('/', salasController.agregar);
-
-// PUT /salas/:id - Editar sala existente
-router.put('/:id', salasController.editar);
-
-// DELETE /salas/:id - Eliminar sala
-router.delete('/:id', salasController.eliminar);
+// DELETE /api/salas/:id - Eliminar una sala
+router.delete('/:id', (req, res) => {
+  SalaController.delete(req.params.id)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Sala eliminada exitosamente'
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
 module.exports = router;

@@ -1,31 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const boletosController = require('../controllers/boletosController');
+const BoletoController = require('../controllers/boletoController');
 
-// ===== RUTAS PARA BOLETOS =====
+// GET /api/boletos - Obtener todos los boletos
+router.get('/', (req, res) => {
+  BoletoController.getAll()
+    .then(boletos => {
+      res.send({
+        success: true,
+        data: boletos,
+        count: boletos.length
+      });
+    })
+    .catch(error => {
+      res.status(500).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /boletos - Listar todos los boletos
-router.get('/', boletosController.listar);
+// GET /api/boletos/:id - Obtener un boleto por ID
+router.get('/:id', (req, res) => {
+  BoletoController.getById(req.params.id)
+    .then(boleto => {
+      res.send({
+        success: true,
+        data: boleto
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /boletos/usuario/:usuarioId - Obtener boletos por usuario
-router.get('/usuario/:usuarioId', boletosController.obtenerPorUsuario);
+// POST /api/boletos - Crear un nuevo boleto
+router.post('/', (req, res) => {
+  BoletoController.create(req.body)
+    .then(result => {
+      res.status(201).send({
+        success: true,
+        message: 'Boleto creado exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(400).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /boletos/funcion/:funcionId - Obtener boletos por función
-router.get('/funcion/:funcionId', boletosController.obtenerPorFuncion);
+// PUT /api/boletos/:id - Actualizar un boleto
+router.put('/:id', (req, res) => {
+  BoletoController.update(req.params.id, req.body)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Boleto actualizado exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /boletos/:id - Obtener boleto por ID
-router.get('/:id', boletosController.obtenerPorId);
-
-// POST /boletos - Comprar nuevo boleto
-router.post('/', boletosController.comprar);
-
-// PUT /boletos/:id - Actualizar boleto
-router.put('/:id', boletosController.actualizar);
-
-// PUT /boletos/:id/usar - Marcar boleto como usado
-router.put('/:id/usar', boletosController.usarBoleto);
-
-// DELETE /boletos/:id - Cancelar/eliminar boleto
-router.delete('/:id', boletosController.cancelar);
+// DELETE /api/boletos/:id - Eliminar un boleto
+router.delete('/:id', (req, res) => {
+  BoletoController.delete(req.params.id)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Boleto eliminado exitosamente'
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
 module.exports = router;

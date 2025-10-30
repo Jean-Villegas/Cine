@@ -1,25 +1,93 @@
 const express = require('express');
 const router = express.Router();
-const peliculasController = require('../controllers/peliculasController');
+const PeliculaController = require('../controllers/peliculaController');
 
-// ===== RUTAS PARA PELÍCULAS =====
+// GET /api/peliculas - Obtener todas las películas
+router.get('/', (req, res) => {
+  PeliculaController.getAll()
+    .then(peliculas => {
+      res.send({
+        success: true,
+        data: peliculas,
+        count: peliculas.length
+      });
+    })
+    .catch(error => {
+      res.status(500).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /peliculas - Listar todas las películas
-router.get('/', peliculasController.listar);
+// GET /api/peliculas/:id - Obtener una película por ID
+router.get('/:id', (req, res) => {
+  PeliculaController.getById(req.params.id)
+    .then(pelicula => {
+      res.send({
+        success: true,
+        data: pelicula
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /peliculas/activas - Listar solo películas activas
-router.get('/activas', peliculasController.obtenerActivas);
+// POST /api/peliculas - Crear una nueva película
+router.post('/', (req, res) => {
+  PeliculaController.create(req.body)
+    .then(result => {
+      res.status(201).send({
+        success: true,
+        message: 'Película creada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(400).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// GET /peliculas/:id - Obtener película por ID
-router.get('/:id', peliculasController.obtenerPorId);
+// PUT /api/peliculas/:id - Actualizar una película
+router.put('/:id', (req, res) => {
+  PeliculaController.update(req.params.id, req.body)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Película actualizada exitosamente',
+        data: result
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
-// POST /peliculas - Agregar nueva película
-router.post('/', peliculasController.agregar);
-
-// PUT /peliculas/:id - Editar película existente
-router.put('/:id', peliculasController.editar);
-
-// DELETE /peliculas/:id - Eliminar película
-router.delete('/:id', peliculasController.eliminar);
+// DELETE /api/peliculas/:id - Eliminar una película
+router.delete('/:id', (req, res) => {
+  PeliculaController.delete(req.params.id)
+    .then(result => {
+      res.send({
+        success: true,
+        message: 'Película eliminada exitosamente'
+      });
+    })
+    .catch(error => {
+      res.status(404).send({
+        success: false,
+        message: error.message
+      });
+    });
+});
 
 module.exports = router;
