@@ -1,4 +1,6 @@
 ﻿*
 !.gitignore
 !controllers/
+!controllers/**
 !models/
+!models/**
