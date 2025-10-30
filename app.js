@@ -5,7 +5,6 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
-var usersRouter = require('./routes/users');
 var peliculasRouter = require('./routes/peliculas');
 var salasRouter = require('./routes/salas');
 var funcionesRouter = require('./routes/funciones');
@@ -29,7 +28,7 @@ app.use('/', indexRouter);
 
 // Rutas API
 // Rutas para usuarios: mantenemos /api/users por compatibilidad y añadimos /api/usuarios
-app.use('/api/users', usersRouter);
+app.use('/api/users', usuariosRouter);
 app.use('/api/usuarios', usuariosRouter);
 app.use('/api/peliculas', peliculasRouter);
 app.use('/api/salas', salasRouter);
