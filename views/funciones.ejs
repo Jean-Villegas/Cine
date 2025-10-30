@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema de Cine</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/modules.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎬 Cine API</h1>
+            <p>Sistema de Gestión</p>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Módulos</h3>
+                <a href="/peliculas" class="nav-item">
+                    <span class="method get">📽️</span>
+                    <span class="endpoint">Películas</span>
+                </a>
+                <a href="/usuarios" class="nav-item">
+                    <span class="method post">👥</span>
+                    <span class="endpoint">Usuarios</span>
+                </a>
+                <a href="/salas" class="nav-item">
+                    <span class="method put">🏢</span>
+                    <span class="endpoint">Salas</span>
+                </a>
+                <a href="/funciones" class="nav-item active">
+                    <span class="method delete">🎭</span>
+                    <span class="endpoint">Funciones</span>
+                </a>
+                <a href="/boletos" class="nav-item">
+                    <span class="method get">🎫</span>
+                    <span class="endpoint">Boletos</span>
+                </a>
+            </div>
+            <div class="nav-section">
+                <h3>API</h3>
+                <a href="/" class="nav-item">
+                    <span class="method get">📚</span>
+                    <span class="endpoint">Documentación</span>
+                </a>
+            </div>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>🎭 <%= title %></h1>
+                <p><%= message %></p>
+            </div>
+
+            <button class="btn btn-add" onclick="openModal('funcionModal')">
+                ➕ Agregar Nueva Función
+            </button>
+
+            <div class="cards-container" id="funcionesContainer">
+                <!-- Las funciones se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Función -->
+    <div id="funcionModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Nueva Función</h2>
+                <span class="close" onclick="closeModal('funcionModal')">&times;</span>
+            </div>
+            <form id="funcionForm">
+                <div class="form-group">
+                    <label class="form-label" for="pelicula_id">Película *</label>
+                    <select class="form-select" id="pelicula_id" name="pelicula_id" required>
+                        <option value="">Seleccionar película</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="sala_id">Sala *</label>
+                    <select class="form-select" id="sala_id" name="sala_id" required>
+                        <option value="">Seleccionar sala</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="fecha">Fecha *</label>
+                    <input type="date" class="form-input" id="fecha" name="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="hora_inicio">Hora de Inicio *</label>
+                    <input type="time" class="form-input" id="hora_inicio" name="hora_inicio" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="hora_fin">Hora de Fin</label>
+                    <input type="time" class="form-input" id="hora_fin" name="hora_fin">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="precio">Precio ($)</label>
+                    <input type="number" class="form-input" id="precio" name="precio" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tipo">Tipo de Función</label>
+                    <select class="form-select" id="tipo" name="tipo">
+                        <option value="Estreno">Estreno</option>
+                        <option value="Normal">Normal</option>
+                        <option value="VIP">VIP</option>
+                        <option value="Matine">Matine</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="asientos_disponibles">Asientos Disponibles</label>
+                    <input type="number" class="form-input" id="asientos_disponibles" name="asientos_disponibles" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="asientos_ocupados">Asientos Ocupados</label>
+                    <input type="number" class="form-input" id="asientos_ocupados" name="asientos_ocupados" min="0">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estado">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="activa">Activa</option>
+                        <option value="agotada">Agotada</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="closeModal('funcionModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-add">Guardar Función</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let funciones = [];
+        let peliculas = [];
+        let salas = [];
+        let editingId = null;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadPeliculas();
+            await loadSalas();
+            await loadFunciones();
+        });
+
+        // Cargar funciones desde la API
+        async function loadFunciones() {
+            try {
+                const response = await fetch('/api/funciones');
+                const data = await response.json();
+                funciones = data.data || [];
+                renderFunciones();
+            } catch (error) {
+                console.error('Error al cargar funciones:', error);
+                alert('Error al cargar las funciones');
+            }
+        }
+
+        // Cargar películas para el select
+        async function loadPeliculas() {
+            try {
+                const response = await fetch('/api/peliculas');
+                const data = await response.json();
+                peliculas = data.data || [];
+                console.log('Películas cargadas:', peliculas);
+                updatePeliculasSelect();
+            } catch (error) {
+                console.error('Error al cargar películas:', error);
+            }
+        }
+
+        // Cargar salas para el select
+        async function loadSalas() {
+            try {
+                const response = await fetch('/api/salas');
+                const data = await response.json();
+                salas = data.data || [];
+                console.log('Salas cargadas:', salas);
+                updateSalasSelect();
+            } catch (error) {
+                console.error('Error al cargar salas:', error);
+            }
+        }
+
+        // Actualizar select de películas
+        function updatePeliculasSelect() {
+            const select = document.getElementById('pelicula_id');
+            select.innerHTML = '<option value="">Seleccionar película</option>';
+            peliculas.forEach(pelicula => {
+                const option = document.createElement('option');
+                option.value = pelicula.id;
+                option.textContent = pelicula.titulo;
+                select.appendChild(option);
+            });
+        }
+
+        // Actualizar select de salas
+        function updateSalasSelect() {
+            const select = document.getElementById('sala_id');
+            select.innerHTML = '<option value="">Seleccionar sala</option>';
+            salas.forEach(sala => {
+                const option = document.createElement('option');
+                option.value = sala.id;
+                option.textContent = `${sala.nombre} (${sala.capacidad} asientos)`;
+                select.appendChild(option);
+            });
+        }
+
+        // Renderizar funciones en cards
+        function renderFunciones() {
+            const container = document.getElementById('funcionesContainer');
+            container.innerHTML = '';
+
+            funciones.forEach(funcion => {
+                const card = createFuncionCard(funcion);
+                container.appendChild(card);
+            });
+        }
+
+        // Crear card de función
+        function createFuncionCard(funcion) {
+            const card = document.createElement('div');
+            card.className = 'entity-card';
+            
+            const pelicula = peliculas.find(p => p.id === funcion.pelicula_id);
+            const sala = salas.find(s => s.id === funcion.sala_id);
+            
+            console.log('Función:', funcion);
+            console.log('Película encontrada:', pelicula);
+            console.log('Sala encontrada:', sala);
+            
+            const tipoIcon = funcion.tipo === 'Estreno' ? '🎬' : 
+                           funcion.tipo === 'Matine' ? '🌅' : 
+                           funcion.tipo === 'VIP' ? '👑' : 
+                           funcion.tipo === 'Normal' ? '🎭' : '🎬';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${tipoIcon} ${pelicula ? pelicula.titulo : 'Película no encontrada'}</h3>
+                    <span class="card-status ${funcion.estado === 'activa' ? 'status-active' : 'status-inactive'}">
+                        ${funcion.estado || 'N/A'}
+                    </span>
+                </div>
+                <div class="card-content">
+                    <div class="card-field">
+                        <span class="card-field-label">Sala:</span>
+                        <span class="card-field-value">${sala ? sala.numero : 'Sala no encontrada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Fecha:</span>
+                        <span class="card-field-value">${funcion.fecha ? new Date(funcion.fecha).toLocaleDateString() : 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Horario:</span>
+                        <span class="card-field-value">${funcion.hora_inicio || 'No especificado'} - ${funcion.hora_fin || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Tipo:</span>
+                        <span class="card-field-value">${funcion.tipo || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Precio:</span>
+                        <span class="card-field-value">$${funcion.precio ? parseFloat(funcion.precio).toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Asientos Disponibles:</span>
+                        <span class="card-field-value">${funcion.asientos_disponibles || '0'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Asientos Ocupados:</span>
+                        <span class="card-field-value">${funcion.asientos_ocupados || '0'}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-edit" onclick="editFuncion(${funcion.id})">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteFuncion(${funcion.id})">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Abrir modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Nueva Función';
+            document.getElementById('funcionForm').reset();
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            editingId = null;
+        }
+
+        // Editar función
+        function editFuncion(id) {
+            const funcion = funciones.find(f => f.id === id);
+            if (!funcion) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Función';
+            
+            // Llenar formulario
+            Object.keys(funcion).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = funcion[key] === 1 || funcion[key] === true;
+                    } else {
+                        input.value = funcion[key] || '';
+                    }
+                }
+            });
+
+            document.getElementById('funcionModal').classList.add('show');
+        }
+
+        // Eliminar función
+        async function deleteFuncion(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta función?')) return;
+
+            try {
+                const response = await fetch(`/api/funciones/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    await loadFunciones();
+                    alert('Función eliminada exitosamente');
+                } else {
+                    alert('Error al eliminar la función');
+                }
+            } catch (error) {
+                console.error('Error al eliminar función:', error);
+                alert('Error al eliminar la función');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('funcionForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const url = editingId ? `/api/funciones/${editingId}` : '/api/funciones';
+                const method = editingId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal('funcionModal');
+                    await loadFunciones();
+                    alert(editingId ? 'Función actualizada exitosamente' : 'Función creada exitosamente');
+                } else {
+                    alert('Error al guardar la función');
+                }
+            } catch (error) {
+                console.error('Error al guardar función:', error);
+                alert('Error al guardar la función');
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('funcionModal');
+            if (event.target === modal) {
+                closeModal('funcionModal');
+            }
+        }
+    </script>
+</body>
+</html>

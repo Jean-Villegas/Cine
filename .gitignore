@@ -4,5 +4,5 @@
 !controllers/**
 !models/
 !models/**
-!view/
-!view/**
+!views/
+!views/**
