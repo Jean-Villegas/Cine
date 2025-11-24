@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema de Cine</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎬 Cine API</h1>
+            <p>Sistema de Gestión</p>
+            <% if (user) { %>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155;">
+                <p style="color: #3b82f6; font-size: 0.9em; margin-bottom: 5px;">
+                    👤 <%= user.nombre %> <%= user.apellido %>
+                </p>
+                <p style="color: #94a3b8; font-size: 0.75em; margin: 0;">
+                    <%= user.rol === 'administrador' ? '🔑 Administrador' : '👤 Cliente' %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Módulos del Sistema</h3>
+                <a href="/peliculas" class="nav-item">
+                    <span class="method get">📽️</span>
+                    <span class="endpoint">Gestión de Películas</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/usuarios" class="nav-item">
+                    <span class="method post">👥</span>
+                    <span class="endpoint">Gestión de Usuarios</span>
+                </a>
+                <a href="/salas" class="nav-item">
+                    <span class="method put">🏢</span>
+                    <span class="endpoint">Gestión de Salas</span>
+                </a>
+                <% } %>
+                <a href="/funciones" class="nav-item">
+                    <span class="method delete">🎭</span>
+                    <span class="endpoint">Gestión de Funciones</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/boletos" class="nav-item">
+                    <span class="method get">🎫</span>
+                    <span class="endpoint">Gestión de Boletos</span>
+                </a>
+                <% } %>
+            </div>
+            <div class="nav-section">
+                <h3>Documentación</h3>
+                <a href="/" class="nav-item active">
+                    <span class="method get">📚</span>
+                    <span class="endpoint">API Documentation</span>
+                </a>
+            </div>
+            <% if (user) { %>
+            <div class="nav-section">
+                <h3>Cuenta</h3>
+                <a href="#" id="logoutBtn" class="nav-item" style="color: #ef4444;">
+                    <span class="method delete">🚪</span>
+                    <span class="endpoint">Cerrar Sesión</span>
+                </a>
+            </div>
+            <% } %>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1><%= title %></h1>
+                <p><%= message %></p>
+            </div>
+
+        <div class="api-section">
+            <h2>🎬 API de Películas</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>Obtener Películas</h3>
+                    <p><span class="method get">GET</span> <span class="endpoint">/api/peliculas</span></p>
+                    <p>Obtiene todas las películas disponibles</p>
+                </div>
+                <div class="api-card">
+                    <h3>Crear Película</h3>
+                    <p><span class="method post">POST</span> <span class="endpoint">/api/peliculas</span></p>
+                    <p>Agrega una nueva película al sistema</p>
+                </div>
+                <div class="api-card">
+                    <h3>Actualizar Película</h3>
+                    <p><span class="method put">PUT</span> <span class="endpoint">/api/peliculas/:id</span></p>
+                    <p>Modifica una película existente</p>
+                </div>
+                <div class="api-card">
+                    <h3>Eliminar Película</h3>
+                    <p><span class="method delete">DELETE</span> <span class="endpoint">/api/peliculas/:id</span></p>
+                    <p>Elimina una película del sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>👥 API de Usuarios</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>Obtener Usuarios</h3>
+                    <p><span class="method get">GET</span> <span class="endpoint">/api/usuarios</span></p>
+                    <p>Lista todos los usuarios registrados</p>
+                </div>
+                <div class="api-card">
+                    <h3>Crear Usuario</h3>
+                    <p><span class="method post">POST</span> <span class="endpoint">/api/usuarios</span></p>
+                    <p>Registra un nuevo usuario</p>
+                </div>
+                <div class="api-card">
+                    <h3>Actualizar Usuario</h3>
+                    <p><span class="method put">PUT</span> <span class="endpoint">/api/usuarios/:id</span></p>
+                    <p>Modifica datos de un usuario</p>
+                </div>
+                <div class="api-card">
+                    <h3>Eliminar Usuario</h3>
+                    <p><span class="method delete">DELETE</span> <span class="endpoint">/api/usuarios/:id</span></p>
+                    <p>Elimina un usuario del sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>🎭 API de Salas</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>Obtener Salas</h3>
+                    <p><span class="method get">GET</span> <span class="endpoint">/api/salas</span></p>
+                    <p>Lista todas las salas disponibles</p>
+                </div>
+                <div class="api-card">
+                    <h3>Crear Sala</h3>
+                    <p><span class="method post">POST</span> <span class="endpoint">/api/salas</span></p>
+                    <p>Agrega una nueva sala</p>
+                </div>
+                <div class="api-card">
+                    <h3>Actualizar Sala</h3>
+                    <p><span class="method put">PUT</span> <span class="endpoint">/api/salas/:id</span></p>
+                    <p>Modifica una sala existente</p>
+                </div>
+                <div class="api-card">
+                    <h3>Eliminar Sala</h3>
+                    <p><span class="method delete">DELETE</span> <span class="endpoint">/api/salas/:id</span></p>
+                    <p>Elimina una sala del sistema</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>🎫 API de Funciones</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>Obtener Funciones</h3>
+                    <p><span class="method get">GET</span> <span class="endpoint">/api/funciones</span></p>
+                    <p>Lista todas las funciones programadas</p>
+                </div>
+                <div class="api-card">
+                    <h3>Crear Función</h3>
+                    <p><span class="method post">POST</span> <span class="endpoint">/api/funciones</span></p>
+                    <p>Programa una nueva función</p>
+                </div>
+                <div class="api-card">
+                    <h3>Actualizar Función</h3>
+                    <p><span class="method put">PUT</span> <span class="endpoint">/api/funciones/:id</span></p>
+                    <p>Modifica una función existente</p>
+                </div>
+                <div class="api-card">
+                    <h3>Eliminar Función</h3>
+                    <p><span class="method delete">DELETE</span> <span class="endpoint">/api/funciones/:id</span></p>
+                    <p>Cancela una función</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="api-section">
+            <h2>🎟️ API de Boletos</h2>
+            <div class="api-grid">
+                <div class="api-card">
+                    <h3>Obtener Boletos</h3>
+                    <p><span class="method get">GET</span> <span class="endpoint">/api/boletos</span></p>
+                    <p>Lista todos los boletos vendidos</p>
+                </div>
+                <div class="api-card">
+                    <h3>Crear Boleto</h3>
+                    <p><span class="method post">POST</span> <span class="endpoint">/api/boletos</span></p>
+                    <p>Vende un nuevo boleto</p>
+                </div>
+                <div class="api-card">
+                    <h3>Actualizar Boleto</h3>
+                    <p><span class="method put">PUT</span> <span class="endpoint">/api/boletos/:id</span></p>
+                    <p>Modifica un boleto existente</p>
+                </div>
+                <div class="api-card">
+                    <h3>Eliminar Boleto</h3>
+                    <p><span class="method delete">DELETE</span> <span class="endpoint">/api/boletos/:id</span></p>
+                    <p>Anula un boleto</p>
+                </div>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script>
+        // Manejar logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

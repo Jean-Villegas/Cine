@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema de Cine</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/modules.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎬 Cine API</h1>
+            <p>Sistema de Gestión</p>
+            <% if (user) { %>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155;">
+                <p style="color: #3b82f6; font-size: 0.9em; margin-bottom: 5px;">
+                    👤 <%= user.nombre %> <%= user.apellido %>
+                </p>
+                <p style="color: #94a3b8; font-size: 0.75em; margin: 0;">
+                    <%= user.rol === 'administrador' ? '🔑 Administrador' : '👤 Cliente' %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Módulos</h3>
+                <a href="/peliculas" class="nav-item">
+                    <span class="method get">📽️</span>
+                    <span class="endpoint">Películas</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/usuarios" class="nav-item">
+                    <span class="method post">👥</span>
+                    <span class="endpoint">Usuarios</span>
+                </a>
+                <a href="/salas" class="nav-item">
+                    <span class="method put">🏢</span>
+                    <span class="endpoint">Salas</span>
+                </a>
+                <% } %>
+                <a href="/funciones" class="nav-item">
+                    <span class="method delete">🎭</span>
+                    <span class="endpoint">Funciones</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/boletos" class="nav-item active">
+                    <span class="method get">🎫</span>
+                    <span class="endpoint">Boletos</span>
+                </a>
+                <% } %>
+            </div>
+            <div class="nav-section">
+                <h3>API</h3>
+                <a href="/" class="nav-item">
+                    <span class="method get">📚</span>
+                    <span class="endpoint">Documentación</span>
+                </a>
+            </div>
+            <% if (user) { %>
+            <div class="nav-section">
+                <h3>Cuenta</h3>
+                <a href="#" id="logoutBtn" class="nav-item" style="color: #ef4444;">
+                    <span class="method delete">🚪</span>
+                    <span class="endpoint">Cerrar Sesión</span>
+                </a>
+            </div>
+            <% } %>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>🎫 <%= title %></h1>
+                <p><%= message %></p>
+            </div>
+
+            <button class="btn btn-add" onclick="openModal('boletoModal')">
+                ➕ Agregar Nuevo Boleto
+            </button>
+
+            <div class="cards-container" id="boletosContainer">
+                <!-- Los boletos se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Boleto -->
+    <div id="boletoModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Nuevo Boleto</h2>
+                <span class="close" onclick="closeModal('boletoModal')">&times;</span>
+            </div>
+            <form id="boletoForm">
+                <div class="form-group">
+                    <label class="form-label" for="funcion_id">Función *</label>
+                    <select class="form-select" id="funcion_id" name="funcion_id" required>
+                        <option value="">Seleccionar función</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="usuario_id">Usuario *</label>
+                    <select class="form-select" id="usuario_id" name="usuario_id" required>
+                        <option value="">Seleccionar usuario</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="numero_asiento">Número de Asiento *</label>
+                    <input type="text" class="form-input" id="numero_asiento" name="numero_asiento" required placeholder="Ej: A15, B8, C22">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="precio">Precio ($)</label>
+                    <input type="number" class="form-input" id="precio" name="precio" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="fecha_compra">Fecha de Compra</label>
+                    <input type="date" class="form-input" id="fecha_compra" name="fecha_compra">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="hora_compra">Hora de Compra</label>
+                    <input type="time" class="form-input" id="hora_compra" name="hora_compra">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="metodo_pago">Método de Pago</label>
+                    <select class="form-select" id="metodo_pago" name="metodo_pago">
+                        <option value="efectivo">Efectivo</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="transferencia">Transferencia</option>
+                        <option value="app">App Móvil</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="codigo_qr">Código QR</label>
+                    <input type="text" class="form-input" id="codigo_qr" name="codigo_qr" placeholder="Código QR único">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estado">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="confirmado">Confirmado</option>
+                        <option value="usado">Usado</option>
+                        <option value="cancelado">Cancelado</option>
+                        <option value="reembolsado">Reembolsado</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="closeModal('boletoModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-add">Guardar Boleto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let boletos = [];
+        let funciones = [];
+        let usuarios = [];
+        let editingId = null;
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', async function() {
+            await loadFunciones();
+            await loadUsuarios();
+            await loadBoletos();
+        });
+
+        // Cargar boletos desde la API
+        async function loadBoletos() {
+            try {
+                const response = await fetch('/api/boletos');
+                const data = await response.json();
+                boletos = data.data || [];
+                renderBoletos();
+            } catch (error) {
+                console.error('Error al cargar boletos:', error);
+                alert('Error al cargar los boletos');
+            }
+        }
+
+        // Cargar funciones para el select
+        async function loadFunciones() {
+            try {
+                const response = await fetch('/api/funciones');
+                const data = await response.json();
+                funciones = data.data || [];
+                updateFuncionesSelect();
+            } catch (error) {
+                console.error('Error al cargar funciones:', error);
+            }
+        }
+
+        // Cargar usuarios para el select
+        async function loadUsuarios() {
+            try {
+                const response = await fetch('/api/usuarios');
+                const data = await response.json();
+                usuarios = data.data || [];
+                updateUsuariosSelect();
+            } catch (error) {
+                console.error('Error al cargar usuarios:', error);
+            }
+        }
+
+        // Actualizar select de funciones
+        function updateFuncionesSelect() {
+            const select = document.getElementById('funcion_id');
+            select.innerHTML = '<option value="">Seleccionar función</option>';
+            funciones.forEach(funcion => {
+                const option = document.createElement('option');
+                option.value = funcion.id;
+                option.textContent = `Función #${funcion.id} - ${funcion.fecha} ${funcion.hora_inicio}`;
+                select.appendChild(option);
+            });
+        }
+
+        // Actualizar select de usuarios
+        function updateUsuariosSelect() {
+            const select = document.getElementById('usuario_id');
+            select.innerHTML = '<option value="">Seleccionar usuario</option>';
+            usuarios.forEach(usuario => {
+                const option = document.createElement('option');
+                option.value = usuario.id;
+                option.textContent = `${usuario.nombre} ${usuario.apellido} (${usuario.email})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Renderizar boletos en cards
+        function renderBoletos() {
+            const container = document.getElementById('boletosContainer');
+            container.innerHTML = '';
+
+            boletos.forEach(boleto => {
+                const card = createBoletoCard(boleto);
+                container.appendChild(card);
+            });
+        }
+
+        // Crear card de boleto
+        function createBoletoCard(boleto) {
+            const card = document.createElement('div');
+            card.className = 'entity-card';
+            
+            const funcion = funciones.find(f => f.id === boleto.funcion_id);
+            const usuario = usuarios.find(u => u.id === boleto.usuario_id);
+            
+            console.log('Boleto:', boleto);
+            console.log('Función encontrada:', funcion);
+            console.log('Usuario encontrado:', usuario);
+            
+            const estadoIcon = boleto.estado === 'confirmado' ? '✅' : 
+                              boleto.estado === 'usado' ? '🎬' : 
+                              boleto.estado === 'cancelado' ? '❌' : 
+                              boleto.estado === 'reembolsado' ? '💰' : '🎫';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${estadoIcon} Boleto #${boleto.id || 'N/A'}</h3>
+                    <span class="card-status ${boleto.estado === 'confirmado' ? 'status-active' : 'status-inactive'}">
+                        ${boleto.estado || 'N/A'}
+                    </span>
+                </div>
+                <div class="card-content">
+                    <div class="card-field">
+                        <span class="card-field-label">Función:</span>
+                        <span class="card-field-value">${funcion ? `#${funcion.id} - ${funcion.fecha} ${funcion.hora_inicio}` : 'Función no encontrada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Usuario:</span>
+                        <span class="card-field-value">${usuario ? `${usuario.nombre} ${usuario.apellido}` : 'Usuario no encontrado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Asiento:</span>
+                        <span class="card-field-value">${boleto.numero_asiento || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Precio:</span>
+                        <span class="card-field-value">$${boleto.precio ? parseFloat(boleto.precio).toFixed(2) : '0.00'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Método Pago:</span>
+                        <span class="card-field-value">${boleto.metodo_pago || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Fecha Compra:</span>
+                        <span class="card-field-value">${boleto.fecha_compra ? new Date(boleto.fecha_compra).toLocaleDateString() : 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Hora Compra:</span>
+                        <span class="card-field-value">${boleto.hora_compra || 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Código QR:</span>
+                        <span class="card-field-value">${boleto.codigo_qr || 'No generado'}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-edit" onclick="editBoleto(${boleto.id})">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteBoleto(${boleto.id})">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Abrir modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Nuevo Boleto';
+            document.getElementById('boletoForm').reset();
+            
+            // Establecer fecha actual por defecto
+            const now = new Date();
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('fecha_compra').value = localDateTime;
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            editingId = null;
+        }
+
+        // Editar boleto
+        function editBoleto(id) {
+            const boleto = boletos.find(b => b.id === id);
+            if (!boleto) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Boleto';
+            
+            // Llenar formulario
+            Object.keys(boleto).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    if (input.type === 'date') {
+                        // Convertir fecha para date
+                        if (boleto[key]) {
+                            const date = new Date(boleto[key]);
+                            input.value = date.toISOString().split('T')[0];
+                        }
+                    } else if (input.type === 'time') {
+                        // Convertir hora para time
+                        if (boleto[key]) {
+                            input.value = boleto[key];
+                        }
+                    } else {
+                        input.value = boleto[key] || '';
+                    }
+                }
+            });
+
+            document.getElementById('boletoModal').classList.add('show');
+        }
+
+        // Eliminar boleto
+        async function deleteBoleto(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar este boleto?')) return;
+
+            try {
+                const response = await fetch(`/api/boletos/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    await loadBoletos();
+                    alert('Boleto eliminado exitosamente');
+                } else {
+                    alert('Error al eliminar el boleto');
+                }
+            } catch (error) {
+                console.error('Error al eliminar boleto:', error);
+                alert('Error al eliminar el boleto');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('boletoForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const url = editingId ? `/api/boletos/${editingId}` : '/api/boletos';
+                const method = editingId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal('boletoModal');
+                    await loadBoletos();
+                    alert(editingId ? 'Boleto actualizado exitosamente' : 'Boleto creado exitosamente');
+                } else {
+                    alert('Error al guardar el boleto');
+                }
+            } catch (error) {
+                console.error('Error al guardar boleto:', error);
+                alert('Error al guardar el boleto');
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('boletoModal');
+            if (event.target === modal) {
+                closeModal('boletoModal');
+            }
+        }
+
+        // Manejar logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

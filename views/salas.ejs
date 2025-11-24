@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema de Cine</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/modules.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎬 Cine API</h1>
+            <p>Sistema de Gestión</p>
+            <% if (user) { %>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155;">
+                <p style="color: #3b82f6; font-size: 0.9em; margin-bottom: 5px;">
+                    👤 <%= user.nombre %> <%= user.apellido %>
+                </p>
+                <p style="color: #94a3b8; font-size: 0.75em; margin: 0;">
+                    <%= user.rol === 'administrador' ? '🔑 Administrador' : '👤 Cliente' %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Módulos</h3>
+                <a href="/peliculas" class="nav-item">
+                    <span class="method get">📽️</span>
+                    <span class="endpoint">Películas</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/usuarios" class="nav-item">
+                    <span class="method post">👥</span>
+                    <span class="endpoint">Usuarios</span>
+                </a>
+                <a href="/salas" class="nav-item active">
+                    <span class="method put">🏢</span>
+                    <span class="endpoint">Salas</span>
+                </a>
+                <% } %>
+                <a href="/funciones" class="nav-item">
+                    <span class="method delete">🎭</span>
+                    <span class="endpoint">Funciones</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/boletos" class="nav-item">
+                    <span class="method get">🎫</span>
+                    <span class="endpoint">Boletos</span>
+                </a>
+                <% } %>
+            </div>
+            <div class="nav-section">
+                <h3>API</h3>
+                <a href="/" class="nav-item">
+                    <span class="method get">📚</span>
+                    <span class="endpoint">Documentación</span>
+                </a>
+            </div>
+            <% if (user) { %>
+            <div class="nav-section">
+                <h3>Cuenta</h3>
+                <a href="#" id="logoutBtn" class="nav-item" style="color: #ef4444;">
+                    <span class="method delete">🚪</span>
+                    <span class="endpoint">Cerrar Sesión</span>
+                </a>
+            </div>
+            <% } %>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>🏢 <%= title %></h1>
+                <p><%= message %></p>
+            </div>
+
+            <button class="btn btn-add" onclick="openModal('salaModal')">
+                ➕ Agregar Nueva Sala
+            </button>
+
+            <div class="cards-container" id="salasContainer">
+                <!-- Las salas se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Sala -->
+    <div id="salaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Nueva Sala</h2>
+                <span class="close" onclick="closeModal('salaModal')">&times;</span>
+            </div>
+            <form id="salaForm">
+                <div class="form-group">
+                    <label class="form-label" for="numero">Número de la Sala *</label>
+                    <input type="text" class="form-input" id="numero" name="numero" required placeholder="Ej: Sala 1, A1, VIP-1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="capacidad">Capacidad *</label>
+                    <input type="number" class="form-input" id="capacidad" name="capacidad" min="1" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="tipo">Tipo de Sala</label>
+                    <select class="form-select" id="tipo" name="tipo">
+                        <option value="Estándar">Estándar</option>
+                        <option value="Premium">Premium</option>
+                        <option value="VIP">VIP</option>
+                        <option value="3D">3D</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="ubicacion">Ubicación</label>
+                    <input type="text" class="form-input" id="ubicacion" name="ubicacion" placeholder="Ej: Planta Baja, Segundo Piso">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="equipamiento">Equipamiento</label>
+                    <textarea class="form-textarea" id="equipamiento" name="equipamiento" rows="3" placeholder="Ej: Sonido Dolby Atmos, Pantalla 4K, Asientos Reclinables"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estado">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="activa">Activa</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="closeModal('salaModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-add">Guardar Sala</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let salas = [];
+        let editingId = null;
+
+        // Cargar salas al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadSalas();
+        });
+
+        // Cargar salas desde la API
+        async function loadSalas() {
+            try {
+                const response = await fetch('/api/salas');
+                const data = await response.json();
+                salas = data.data || [];
+                renderSalas();
+            } catch (error) {
+                console.error('Error al cargar salas:', error);
+                alert('Error al cargar las salas');
+            }
+        }
+
+        // Renderizar salas en cards
+        function renderSalas() {
+            const container = document.getElementById('salasContainer');
+            container.innerHTML = '';
+
+            salas.forEach(sala => {
+                const card = createSalaCard(sala);
+                container.appendChild(card);
+            });
+        }
+
+        // Crear card de sala
+        function createSalaCard(sala) {
+            const card = document.createElement('div');
+            card.className = 'entity-card';
+            
+            const tipoIcon = sala.tipo === 'VIP' ? '👑' : 
+                           sala.tipo === 'Premium' ? '⭐' : 
+                           sala.tipo === '3D' ? '🥽' : '🏢';
+            
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${tipoIcon} ${sala.numero || 'Sin número'}</h3>
+                    <span class="card-status ${sala.estado === 'activa' ? 'status-active' : 'status-inactive'}">
+                        ${sala.estado || 'N/A'}
+                    </span>
+                </div>
+                <div class="card-content">
+                    <div class="card-field">
+                        <span class="card-field-label">Capacidad:</span>
+                        <span class="card-field-value">${sala.capacidad || 'No especificada'} asientos</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Tipo:</span>
+                        <span class="card-field-value">${sala.tipo || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Ubicación:</span>
+                        <span class="card-field-value">${sala.ubicacion || 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Equipamiento:</span>
+                        <span class="card-field-value">${sala.equipamiento || 'No especificado'}</span>
+                    </div>
+                </div>
+                <div class="card-actions">
+                    <button class="btn btn-edit" onclick="editSala(${sala.id})">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-delete" onclick="deleteSala(${sala.id})">
+                        🗑️ Eliminar
+                    </button>
+                </div>
+            `;
+            return card;
+        }
+
+        // Abrir modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Nueva Sala';
+            document.getElementById('salaForm').reset();
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            editingId = null;
+        }
+
+        // Editar sala
+        function editSala(id) {
+            const sala = salas.find(s => s.id === id);
+            if (!sala) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Sala';
+            
+            // Llenar formulario
+            Object.keys(sala).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = sala[key] === 1 || sala[key] === true;
+                    } else {
+                        input.value = sala[key] || '';
+                    }
+                }
+            });
+
+            document.getElementById('salaModal').classList.add('show');
+        }
+
+        // Eliminar sala
+        async function deleteSala(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta sala?')) return;
+
+            try {
+                const response = await fetch(`/api/salas/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    await loadSalas();
+                    alert('Sala eliminada exitosamente');
+                } else {
+                    alert('Error al eliminar la sala');
+                }
+            } catch (error) {
+                console.error('Error al eliminar sala:', error);
+                alert('Error al eliminar la sala');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('salaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+
+            try {
+                const url = editingId ? `/api/salas/${editingId}` : '/api/salas';
+                const method = editingId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal('salaModal');
+                    await loadSalas();
+                    alert(editingId ? 'Sala actualizada exitosamente' : 'Sala creada exitosamente');
+                } else {
+                    alert('Error al guardar la sala');
+                }
+            } catch (error) {
+                console.error('Error al guardar sala:', error);
+                alert('Error al guardar la sala');
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('salaModal');
+            if (event.target === modal) {
+                closeModal('salaModal');
+            }
+        }
+
+        // Manejar logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>

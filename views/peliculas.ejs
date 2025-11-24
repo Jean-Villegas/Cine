@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><%= title %> - Sistema de Cine</title>
+    <link rel="stylesheet" href="/stylesheets/main.css">
+    <link rel="stylesheet" href="/stylesheets/modules.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h1>🎬 Cine API</h1>
+            <p>Sistema de Gestión</p>
+            <% if (user) { %>
+            <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #334155;">
+                <p style="color: #3b82f6; font-size: 0.9em; margin-bottom: 5px;">
+                    👤 <%= user.nombre %> <%= user.apellido %>
+                </p>
+                <p style="color: #94a3b8; font-size: 0.75em; margin: 0;">
+                    <%= user.rol === 'administrador' ? '🔑 Administrador' : '👤 Cliente' %>
+                </p>
+            </div>
+            <% } %>
+        </div>
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <h3>Módulos</h3>
+                <a href="/peliculas" class="nav-item active">
+                    <span class="method get">📽️</span>
+                    <span class="endpoint">Películas</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/usuarios" class="nav-item">
+                    <span class="method post">👥</span>
+                    <span class="endpoint">Usuarios</span>
+                </a>
+                <a href="/salas" class="nav-item">
+                    <span class="method put">🏢</span>
+                    <span class="endpoint">Salas</span>
+                </a>
+                <% } %>
+                <a href="/funciones" class="nav-item">
+                    <span class="method delete">🎭</span>
+                    <span class="endpoint">Funciones</span>
+                </a>
+                <% if (user && user.rol === 'administrador') { %>
+                <a href="/boletos" class="nav-item">
+                    <span class="method get">🎫</span>
+                    <span class="endpoint">Boletos</span>
+                </a>
+                <% } %>
+            </div>
+            <div class="nav-section">
+                <h3>API</h3>
+                <a href="/" class="nav-item">
+                    <span class="method get">📚</span>
+                    <span class="endpoint">Documentación</span>
+                </a>
+            </div>
+            <% if (user) { %>
+            <div class="nav-section">
+                <h3>Cuenta</h3>
+                <a href="#" id="logoutBtn" class="nav-item" style="color: #ef4444;">
+                    <span class="method delete">🚪</span>
+                    <span class="endpoint">Cerrar Sesión</span>
+                </a>
+            </div>
+            <% } %>
+        </nav>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="container">
+            <div class="header">
+                <h1>🎬 <%= title %></h1>
+                <p><%= message %></p>
+            </div>
+
+            <% if (user && user.rol === 'administrador') { %>
+            <button class="btn btn-add" onclick="openModal('peliculaModal')">
+                ➕ Agregar Nueva Película
+            </button>
+            <% } %>
+
+            <div class="cards-container" id="peliculasContainer">
+                <!-- Las películas se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Crear/Editar Película -->
+    <div id="peliculaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalTitle">Nueva Película</h2>
+                <span class="close" onclick="closeModal('peliculaModal')">&times;</span>
+            </div>
+            <form id="peliculaForm">
+                <div class="form-group">
+                    <label class="form-label" for="titulo">Título *</label>
+                    <input type="text" class="form-input" id="titulo" name="titulo" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="director">Director</label>
+                    <input type="text" class="form-input" id="director" name="director">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="genero">Género</label>
+                    <input type="text" class="form-input" id="genero" name="genero" placeholder="Ej: Ciencia Ficción, Acción, Drama">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="duracion">Duración (minutos)</label>
+                    <input type="number" class="form-input" id="duracion" name="duracion" min="1">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="clasificacion">Clasificación</label>
+                    <input type="text" class="form-input" id="clasificacion" name="clasificacion" placeholder="Ej: B-15, B, AA">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="sinopsis">Sinopsis</label>
+                    <textarea class="form-textarea" id="sinopsis" name="sinopsis" rows="4"></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="anio">Año</label>
+                    <input type="number" class="form-input" id="anio" name="anio" min="1900" max="2030">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="idioma">Idioma</label>
+                    <input type="text" class="form-input" id="idioma" name="idioma">
+                </div>
+                <div class="form-group">
+                    <div class="form-checkbox">
+                        <input type="checkbox" id="subtitulos" name="subtitulos">
+                        <label class="form-label" for="subtitulos">Tiene subtítulos</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="formato">Formato</label>
+                    <input type="text" class="form-input" id="formato" name="formato" placeholder="Ej: 2D, 3D, IMAX">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="precio">Precio ($)</label>
+                    <input type="number" class="form-input" id="precio" name="precio" min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="estado">Estado</label>
+                    <select class="form-select" id="estado" name="estado">
+                        <option value="activa">Activa</option>
+                        <option value="inactiva">Inactiva</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-primary" onclick="closeModal('peliculaModal')">Cancelar</button>
+                    <button type="submit" class="btn btn-add">Guardar Película</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const userRole = '<%= user ? user.rol : "" %>';
+        let peliculas = [];
+        let editingId = null;
+
+        // Cargar películas al iniciar
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPeliculas();
+        });
+
+        // Cargar películas desde la API
+        async function loadPeliculas() {
+            try {
+                const response = await fetch('/api/peliculas');
+                const data = await response.json();
+                peliculas = data.data || [];
+                renderPeliculas();
+            } catch (error) {
+                console.error('Error al cargar películas:', error);
+                alert('Error al cargar las películas');
+            }
+        }
+
+        // Renderizar películas en cards
+        function renderPeliculas() {
+            const container = document.getElementById('peliculasContainer');
+            container.innerHTML = '';
+
+            peliculas.forEach(pelicula => {
+                const card = createPeliculaCard(pelicula);
+                container.appendChild(card);
+            });
+        }
+
+        // Crear card de película
+        function createPeliculaCard(pelicula) {
+            const card = document.createElement('div');
+            card.className = 'entity-card';
+            card.innerHTML = `
+                <div class="card-header">
+                    <h3 class="card-title">${pelicula.titulo || 'Sin título'}</h3>
+                    <span class="card-status ${pelicula.estado === 'activa' ? 'status-active' : 'status-inactive'}">
+                        ${pelicula.estado || 'N/A'}
+                    </span>
+                </div>
+                <div class="card-content">
+                    <div class="card-field">
+                        <span class="card-field-label">Director:</span>
+                        <span class="card-field-value">${pelicula.director || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Género:</span>
+                        <span class="card-field-value">${pelicula.genero || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Duración:</span>
+                        <span class="card-field-value">${pelicula.duracion ? pelicula.duracion + ' min' : 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Clasificación:</span>
+                        <span class="card-field-value">${pelicula.clasificacion || 'No especificada'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Año:</span>
+                        <span class="card-field-value">${pelicula.anio || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Idioma:</span>
+                        <span class="card-field-value">${pelicula.idioma || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Formato:</span>
+                        <span class="card-field-value">${pelicula.formato || 'No especificado'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Subtítulos:</span>
+                        <span class="card-field-value">${pelicula.subtitulos ? 'Sí' : 'No'}</span>
+                    </div>
+                    <div class="card-field">
+                        <span class="card-field-label">Precio:</span>
+                        <span class="card-field-value">$${pelicula.precio ? parseFloat(pelicula.precio).toFixed(2) : '0.00'}</span>
+                    </div>
+                    ${pelicula.sinopsis ? `
+                    <div class="card-field">
+                        <span class="card-field-label">Sinopsis:</span>
+                        <span class="card-field-value">${pelicula.sinopsis.length > 100 ? pelicula.sinopsis.substring(0, 100) + '...' : pelicula.sinopsis}</span>
+                    </div>
+                    ` : ''}
+                </div>
+                <div class="card-actions">
+                    ${userRole === 'administrador' ? `
+                    <button class="btn btn-edit" onclick="editPelicula(${pelicula.id})">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-delete" onclick="deletePelicula(${pelicula.id})">
+                        🗑️ Eliminar
+                    </button>
+                    ` : `
+                    <button class="btn btn-edit" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        ✏️ Editar
+                    </button>
+                    <button class="btn btn-delete" disabled style="opacity: 0.5; cursor: not-allowed;">
+                        🗑️ Eliminar
+                    </button>
+                    `}
+                </div>
+            `;
+            return card;
+        }
+
+        // Abrir modal
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('show');
+            editingId = null;
+            document.getElementById('modalTitle').textContent = 'Nueva Película';
+            document.getElementById('peliculaForm').reset();
+        }
+
+        // Cerrar modal
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            editingId = null;
+        }
+
+        // Editar película
+        function editPelicula(id) {
+            const pelicula = peliculas.find(p => p.id === id);
+            if (!pelicula) return;
+
+            editingId = id;
+            document.getElementById('modalTitle').textContent = 'Editar Película';
+            
+            // Llenar formulario
+            Object.keys(pelicula).forEach(key => {
+                const input = document.getElementById(key);
+                if (input) {
+                    if (input.type === 'checkbox') {
+                        input.checked = pelicula[key] === 1 || pelicula[key] === true;
+                    } else {
+                        input.value = pelicula[key] || '';
+                    }
+                }
+            });
+
+            document.getElementById('peliculaModal').classList.add('show');
+        }
+
+        // Eliminar película
+        async function deletePelicula(id) {
+            if (!confirm('¿Estás seguro de que quieres eliminar esta película?')) return;
+
+            try {
+                const response = await fetch(`/api/peliculas/${id}`, {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    await loadPeliculas();
+                    alert('Película eliminada exitosamente');
+                } else {
+                    alert('Error al eliminar la película');
+                }
+            } catch (error) {
+                console.error('Error al eliminar película:', error);
+                alert('Error al eliminar la película');
+            }
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('peliculaForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const data = Object.fromEntries(formData.entries());
+            
+            // Convertir checkbox
+            data.subtitulos = document.getElementById('subtitulos').checked;
+
+            try {
+                const url = editingId ? `/api/peliculas/${editingId}` : '/api/peliculas';
+                const method = editingId ? 'PUT' : 'POST';
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (response.ok) {
+                    closeModal('peliculaModal');
+                    await loadPeliculas();
+                    alert(editingId ? 'Película actualizada exitosamente' : 'Película creada exitosamente');
+                } else {
+                    alert('Error al guardar la película');
+                }
+            } catch (error) {
+                console.error('Error al guardar película:', error);
+                alert('Error al guardar la película');
+            }
+        });
+
+        // Cerrar modal al hacer clic fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('peliculaModal');
+            if (event.target === modal) {
+                closeModal('peliculaModal');
+            }
+        }
+
+        // Manejar logout
+        document.getElementById('logoutBtn')?.addEventListener('click', async (e) => {
+            e.preventDefault();
+            try {
+                const response = await fetch('/api/auth/logout', {
+                    method: 'POST',
+                    credentials: 'include'
+                });
+                const data = await response.json();
+                if (data.success) {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+                window.location.href = '/login';
+            }
+        });
+    </script>
+</body>
+</html>
